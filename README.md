@@ -1,5 +1,5 @@
 # blogsource
-Various code examples associated with my blog articles.  
+Various code examples associated with my blog.  
 
 See:   
 
