@@ -21,19 +21,17 @@ import org.camunda.bpm.engine.variable.VariableMap;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ObjectWriter;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 
 /**
  * Set of ReST examples for interacting with the Camunda engine 
+ * 
  * @author GaryS
  *
  */
 @RequestScoped
 @Path("bpm")
-@Consumes({ "application/xml", "application/json","application/text" })
-@Produces({ "application/xml", "application/json","application/text" })
 public class Bpm {
 	
 	/**
@@ -50,7 +48,7 @@ public class Bpm {
 	
 	
 	/**
-	 * Simple echo test of our ReST, JAX-RS service infrastructure
+	 * Simple echo GET test of our ReST, JAX-RS service infrastructure
 	 * <br><br>
 	 * 
 	 * @param hello
@@ -71,33 +69,29 @@ public class Bpm {
 	
 	
 	/**
+	 * Simple echo POST test of our ReST, JAX-RS service infrastructure
 	 * 
 	 * @param hello
 	 * @return
+	 * @throws JsonProcessingException 
 	 */
 	@POST
 	@Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
 	@Path("echopost")
-	public JsonNode echoPost(JsonNode hello) {
+	public JsonNode echoPost(JsonNode hello) throws JsonProcessingException {
 		
 		// Testing out a new approach to receiving and returning 
 		//	Jackson JsonNode. 
 		// Attempting to avoid all the in-code serialization overhead.
 		// We'll see if this works out in the end. 
 		ObjectMapper mapper = new ObjectMapper();
-		
-		try {
-			// no formatting
-			// mapper.writer().writeValueAsString(hello);
-			// with formatting
-			String logMessage = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(hello);
-			LOGGER.info("*** echopost - hello: \n" + logMessage);
-		} catch (JsonProcessingException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		
+
+		// no formatting
+		// mapper.writer().writeValueAsString(hello);
+		// with formatting
+		String logMessage = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(hello);
+		LOGGER.info("*** echopost - hello: \n" + logMessage);
 		
 		return hello;
 	}
@@ -105,6 +99,7 @@ public class Bpm {
 	
 	
 	/**
+	 * Basic start process example via ReST GET
 	 * 
 	 * @param processID
 	 * @param hello
@@ -133,11 +128,17 @@ public class Bpm {
 	
 	
 	/**
+	 * More advanced start process example via ReST POST
 	 * 
+	 * sample input:
+	 * 
+	 * { "processID": "simple_process_example_pid", "processVariables": [ {
+	 * "name": "hello", "value": "greetings BPM" }, { "name": "myName", "value":
+	 * "Joe Smith" } ] }
 	 * 
 	 * @param hello
 	 * @return
-	 * @throws JsonProcessingException 
+	 * @throws JsonProcessingException
 	 */
 	@POST
 	@Consumes(MediaType.APPLICATION_JSON)
