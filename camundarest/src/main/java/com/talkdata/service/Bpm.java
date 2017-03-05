@@ -73,18 +73,18 @@ public class Bpm {
 	 * 
 	 * @param hello
 	 * @return
-	 * @throws JsonProcessingException 
+	 * @throws JsonProcessingException
 	 */
 	@POST
 	@Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
+	@Produces(MediaType.APPLICATION_JSON)
 	@Path("echopost")
 	public JsonNode echoPost(JsonNode hello) throws JsonProcessingException {
-		
-		// Testing out a new approach to receiving and returning 
-		//	Jackson JsonNode. 
+
+		// Testing out a new approach to receiving and returning
+		// Jackson JsonNode.
 		// Attempting to avoid all the in-code serialization overhead.
-		// We'll see if this works out in the end. 
+		// We'll see if this works out in the end.
 		ObjectMapper mapper = new ObjectMapper();
 
 		// no formatting
@@ -92,7 +92,7 @@ public class Bpm {
 		// with formatting
 		String logMessage = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(hello);
 		LOGGER.info("*** echopost - hello: \n" + logMessage);
-		
+
 		return hello;
 	}
 	
@@ -108,12 +108,11 @@ public class Bpm {
 	@GET
 	@Path("bpmechoget/{processID}/{hello}")
 	@Produces(MediaType.APPLICATION_JSON)
-	public String bpmEchoGet(@PathParam("processID") String processID, 
-		    				@PathParam("hello") String hello ){
-		
+	public String bpmEchoGet(@PathParam("processID") String processID, @PathParam("hello") String hello) {
+
 		LOGGER.info("*** bpmEchoGet - processID: " + processID);
 		LOGGER.info("*** bpmEchoGet - hello: " + hello);
-		
+
 		ProcessInstanceWithVariables pVariablesInReturn = runtimeService.createProcessInstanceByKey(processID)
 				.setVariable("hello", hello)
 				.executeWithVariablesInReturn();
@@ -121,9 +120,7 @@ public class Bpm {
 		String piid = pVariablesInReturn.getProcessInstanceId();
 
 		return "{\"processInstanceID\": \"" + piid + "\"}";
-		
 
-		
 	}
 	
 	
@@ -142,26 +139,26 @@ public class Bpm {
 	 */
 	@POST
 	@Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
+	@Produces(MediaType.APPLICATION_JSON)
 	@Path("bpmechopost")
 	public String bpmEchoPost(JsonNode hello) throws JsonProcessingException {
-		
-		// Testing out a new approach to receiving and returning 
-		//	Jackson JsonNode. 
+
+		// Testing out a new approach to receiving and returning
+		// Jackson JsonNode.
 		// Attempting to avoid all the in-code serialization overhead.
-		// We'll see if this works out in the end. 
-		
+		// We'll see if this works out in the end.
+
 		// get processID
 		String processID = hello.findValue("processID").asText();
-		
+
 		// get the process variables
 		final JsonNode arrNode = hello.get("processVariables");
-		Map<String,Object> variables = new HashMap<String,Object>();
-		
-		for(final JsonNode jsonNode : arrNode) {
-			variables.put(jsonNode.findValue("name").asText(),jsonNode.findValue("value").asText());
+		Map<String, Object> variables = new HashMap<String, Object>();
+
+		for (final JsonNode jsonNode : arrNode) {
+			variables.put(jsonNode.findValue("name").asText(), jsonNode.findValue("value").asText());
 		}
-		
+
 		// start the process
 		ProcessInstanceWithVariables pVariablesInReturn = runtimeService.createProcessInstanceByKey(processID)
 				.setVariables(variables)
@@ -170,39 +167,35 @@ public class Bpm {
 		String piid = pVariablesInReturn.getProcessInstanceId();
 		boolean isEnded = pVariablesInReturn.isEnded();
 		VariableMap variableMap = pVariablesInReturn.getVariables();
-		
+
 		// this time we build a proper JSON return value - using Jackson
 		ObjectMapper mapper = new ObjectMapper();
 		ObjectNode rootObjectNode = mapper.createObjectNode();
-		
-		// set the process instance ID as the root JSON object - we then add variables as child JSON nodes
-		rootObjectNode.put("processID", processID)
-					  .put("processInstanceID", piid)
-					  .put("isEnded", isEnded);
-		
-		// create the JSON node to hold the BPM returned variables		
+
+		// set the process instance ID as the root JSON object - we then add
+		// variables as child JSON nodes
+		rootObjectNode.put("processID", processID).put("processInstanceID", piid).put("isEnded", isEnded);
+
+		// create the JSON node to hold the BPM returned variables
 		ObjectNode processVariablesNode = mapper.createObjectNode();
-		// attach to parent 
+		// attach to parent
 		rootObjectNode.set("processVariables", processVariablesNode);
-		
+
 		// print returned process variables and append to return JSON object
-		variableMap.forEach((processVariableName,processVariableValue) -> 
-								{
-									// log values
-									LOGGER.info(processVariableName.toString() + " : " + processVariableValue.toString());
-									
-									// build JSON return
-									processVariablesNode.put(processVariableName.toString(), processVariableValue.toString());
-								});
-		
-		
+		variableMap.forEach((processVariableName, processVariableValue) -> {
+			// log values
+			LOGGER.info(processVariableName.toString() + " : " + processVariableValue.toString());
+
+			// build JSON return
+			processVariablesNode.put(processVariableName.toString(), processVariableValue.toString());
+		});
+
 		// create writer and return pretty output
-		
+
 		String results = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(rootObjectNode);
-		
+
 		return results;
-		
-		
+
 	}
 	
 	
