@@ -48,22 +48,22 @@ public class Bpm {
 	
 	
 	/**
-	 * Simple echo GET test of our ReST, JAX-RS service infrastructure
-	 * <br><br>
+	 * Simple echo GET test of our ReST, JAX-RS service infrastructure <br>
+	 * <br>
 	 * 
 	 * @param hello
 	 * @return the String echo - in JSON
 	 */
 	@GET
-    @Path("echoget/{hello}")
+	@Path("echoget/{hello}")
 	@Produces(MediaType.APPLICATION_JSON)
-    public String echoget(@PathParam("hello") String hello){
-		
+	public String echoget(@PathParam("hello") String hello) {
+
 		LOGGER.info("*** echoget - hello: " + hello);
-		
+
 		// assemble a basic JSON reply and return
-		String echoReply = "{\"echoback\": \"" + hello + "\"}";		
-		
+		String echoReply = "{\"echoback\": \"" + hello + "\"}";
+
 		return echoReply;
 	}
 	
