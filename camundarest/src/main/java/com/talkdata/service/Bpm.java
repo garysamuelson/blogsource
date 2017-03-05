@@ -16,10 +16,13 @@ import javax.ws.rs.core.MediaType;
 
 import org.camunda.bpm.engine.RuntimeService;
 import org.camunda.bpm.engine.runtime.ProcessInstanceWithVariables;
+import org.camunda.bpm.engine.variable.VariableMap;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectWriter;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 
 /**
@@ -134,12 +137,13 @@ public class Bpm {
 	 * 
 	 * @param hello
 	 * @return
+	 * @throws JsonProcessingException 
 	 */
 	@POST
 	@Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
 	@Path("bpmechopost")
-	public String bpmEchoPost(JsonNode hello) {
+	public String bpmEchoPost(JsonNode hello) throws JsonProcessingException {
 		
 		// Testing out a new approach to receiving and returning 
 		//	Jackson JsonNode. 
@@ -163,8 +167,39 @@ public class Bpm {
 				.executeWithVariablesInReturn();
 
 		String piid = pVariablesInReturn.getProcessInstanceId();
-
-		return "{\"processInstanceID\": \"" + piid + "\"}";
+		boolean isEnded = pVariablesInReturn.isEnded();
+		VariableMap variableMap = pVariablesInReturn.getVariables();
+		
+		// this time we build a proper JSON return value - using Jackson
+		ObjectMapper mapper = new ObjectMapper();
+		ObjectNode rootObjectNode = mapper.createObjectNode();
+		
+		// set the process instance ID as the root JSON object - we then add variables as child JSON nodes
+		rootObjectNode.put("processID", processID)
+					  .put("processInstanceID", piid)
+					  .put("isEnded", isEnded);
+		
+		// create the JSON node to hold the BPM returned variables		
+		ObjectNode processVariablesNode = mapper.createObjectNode();
+		// attach to parent 
+		rootObjectNode.set("processVariables", processVariablesNode);
+		
+		// print returned process variables and append to return JSON object
+		variableMap.forEach((processVariableName,processVariableValue) -> 
+								{
+									// log values
+									LOGGER.info(processVariableName.toString() + " : " + processVariableValue.toString());
+									
+									// build JSON return
+									processVariablesNode.put(processVariableName.toString(), processVariableValue.toString());
+								});
+		
+		
+		// create writer and return pretty output
+		
+		String results = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(rootObjectNode);
+		
+		return results;
 		
 		
 	}
