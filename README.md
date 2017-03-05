@@ -5,4 +5,3 @@ See:
 
 http://garysamuelson.com/blog
 
-.
