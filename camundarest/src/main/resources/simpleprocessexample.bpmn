@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:bioc="http://bpmn.io/schema/bpmn/biocolor/1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" id="Definitions_1" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="1.6.0">
+  <bpmn:collaboration id="Collaboration_1mvqyx6">
+    <bpmn:participant id="simple_process_example_id" name="Simple Process Example" processRef="simple_process_example_pid" />
+  </bpmn:collaboration>
+  <bpmn:process id="simple_process_example_pid" name="Simple Process Example" isExecutable="true">
+    <bpmn:startEvent id="StartEvent_1" name="start">
+      <bpmn:outgoing>SequenceFlow_00zaljq</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:sequenceFlow id="SequenceFlow_00zaljq" sourceRef="StartEvent_1" targetRef="printprocessvars_id" />
+    <bpmn:sequenceFlow id="SequenceFlow_095qeze" sourceRef="printprocessvars_id" targetRef="EndEvent_1efv8si" />
+    <bpmn:endEvent id="EndEvent_1efv8si" name="end">
+      <bpmn:incoming>SequenceFlow_095qeze</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:serviceTask id="printprocessvars_id" name="Print Process Variables" camunda:expression="#{printProcessVars.printvariables(execution)}">
+      <bpmn:incoming>SequenceFlow_00zaljq</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_095qeze</bpmn:outgoing>
+    </bpmn:serviceTask>
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Collaboration_1mvqyx6">
+      <bpmndi:BPMNShape id="Participant_1hg1fqe_di" bpmnElement="simple_process_example_id">
+        <dc:Bounds x="123" y="82" width="521" height="249" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="_BPMNShape_StartEvent_2" bpmnElement="StartEvent_1" bioc:stroke="#43A047" bioc:fill="#C8E6C9">
+        <dc:Bounds x="188" y="188" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="195" y="224" width="22" height="12" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_00zaljq_di" bpmnElement="SequenceFlow_00zaljq">
+        <di:waypoint xsi:type="dc:Point" x="224" y="206" />
+        <di:waypoint xsi:type="dc:Point" x="301" y="206" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="263" y="191" width="0" height="0" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="EndEvent_1efv8si_di" bpmnElement="EndEvent_1efv8si" bioc:stroke="#E53935" bioc:fill="#FFCDD2">
+        <dc:Bounds x="504" y="188" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="513" y="224" width="18" height="12" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_095qeze_di" bpmnElement="SequenceFlow_095qeze">
+        <di:waypoint xsi:type="dc:Point" x="401" y="206" />
+        <di:waypoint xsi:type="dc:Point" x="504" y="206" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="453" y="191" width="0" height="0" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="ServiceTask_043vk7f_di" bpmnElement="printprocessvars_id">
+        <dc:Bounds x="301" y="166" width="100" height="80" />
+      </bpmndi:BPMNShape>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>
