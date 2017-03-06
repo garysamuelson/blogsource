@@ -172,9 +172,13 @@ public class Bpm {
 		ObjectMapper mapper = new ObjectMapper();
 		ObjectNode rootObjectNode = mapper.createObjectNode();
 
-		// set the process instance ID as the root JSON object - we then add
+		// Extract completed process results or output
+		// set the process processID, InstanceID, and isEnded 
 		// variables as child JSON nodes
-		rootObjectNode.put("processID", processID).put("processInstanceID", piid).put("isEnded", isEnded);
+		rootObjectNode
+			.put("processID", processID)
+			.put("processInstanceID", piid)
+			.put("isEnded", isEnded);
 
 		// create the JSON node to hold the BPM returned variables
 		ObjectNode processVariablesNode = mapper.createObjectNode();
