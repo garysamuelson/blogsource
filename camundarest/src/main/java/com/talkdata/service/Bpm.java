@@ -155,7 +155,7 @@ public class Bpm {
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
 	@Path("bpmechopost")
-	public String bpmEchoPost(JsonNode hello) throws JsonProcessingException {
+	public JsonNode bpmEchoPost(JsonNode hello)  {
 
 		// Testing out a new approach to receiving and returning
 		// Jackson JsonNode.
@@ -209,10 +209,13 @@ public class Bpm {
 		});
 
 		// create writer and return pretty output
-
+		// 	NOTE: Converting to String isn't required since we're now returning a JsonNode
+		/**
 		String results = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(rootObjectNode);
-
 		return results;
+		**/
+		
+		return rootObjectNode;
 
 	}
 	
