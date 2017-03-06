@@ -127,6 +127,10 @@ public class Bpm {
 	/**
 	 * More advanced start process example via ReST POST
 	 * 
+	 * NOTE: Camunda includes its own ReST API. This example demonstrates how to 
+	 * 			build your own interfaces. The goal is a facade for use with 
+	 * 			external users who need a reduced, or simplified, set of features. 
+	 * 
 	 * sample input:
 	 * 
 		{
