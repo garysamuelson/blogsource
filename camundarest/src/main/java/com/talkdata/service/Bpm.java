@@ -129,9 +129,19 @@ public class Bpm {
 	 * 
 	 * sample input:
 	 * 
-	 * { "processID": "simple_process_example_pid", "processVariables": [ {
-	 * "name": "hello", "value": "greetings BPM" }, { "name": "myName", "value":
-	 * "Joe Smith" } ] }
+		{
+			"processID": "simple_process_example_pid",
+			"processVariables": [
+				{
+					"name": "hello",
+					"value": "greetings BPM"
+				},
+				{
+					"name": "myName",
+					"value": "Joe Smith"
+				}
+			]
+		}
 	 * 
 	 * @param hello
 	 * @return
