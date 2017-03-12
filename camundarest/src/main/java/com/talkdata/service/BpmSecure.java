@@ -28,6 +28,11 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
  * Set of secure ReST examples for interacting with the Camunda engine 
+ * <br> <br> 
+ * IMPORTANT NOTE: These security examples use the simple, built-in wildfly security. Not yet
+ * using Camunda's build-in user database. 
+ * <br>
+ * 
  * 
  * @author GaryS
  *
