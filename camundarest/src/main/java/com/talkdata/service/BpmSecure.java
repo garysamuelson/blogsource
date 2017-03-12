@@ -83,19 +83,20 @@ public class BpmSecure {
 	 */
 	@GET
 	@Path("secureechoget/{hello}")
-	@RolesAllowed("myusergroup") 
+	@RolesAllowed("myusergroup")
 	@Produces(MediaType.APPLICATION_JSON)
-	public String secureEchoGet(@PathParam("hello") String hello) {
+	public String secureEchoGet(@PathParam("hello") String hello, 
+			@Context SecurityContext security) {
 
 		LOGGER.info("*** echoget - hello: " + hello);
 		
 		
-		//LoginContext loginContext = new LoginContext
-		
+		String loginName = security.getUserPrincipal().getName();
+		LOGGER.info("*** reviewContext - getName: " + loginName);
 		
 
 		// assemble a basic JSON reply and return
-		String echoReply = "{\"echoback\": \"" + hello + "\"}";
+		String echoReply = "{\"logged in user\": \"" + loginName + "\"}";
 
 		return echoReply;
 	}
