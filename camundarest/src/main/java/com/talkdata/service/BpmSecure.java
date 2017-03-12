@@ -24,6 +24,9 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.SecurityContext;
 
 import org.camunda.bpm.engine.RuntimeService;
+import org.camunda.bpm.engine.TaskService;
+import org.camunda.bpm.engine.task.Task;
+import org.camunda.bpm.engine.runtime.ProcessInstance;
 import org.camunda.bpm.engine.runtime.ProcessInstanceWithVariables;
 import org.camunda.bpm.engine.variable.VariableMap;
 
@@ -48,7 +51,7 @@ public class BpmSecure {
 	/**
 	 * Logging 
 	 */
-	private final Logger LOGGER = Logger.getLogger(Bpm.class.getName());
+	private final Logger LOGGER = Logger.getLogger(BpmSecure.class.getName());
 	
 	
 	/**
@@ -56,6 +59,10 @@ public class BpmSecure {
 	 */
 	@Inject
 	private RuntimeService runtimeService;
+	
+	@Inject
+	private TaskService taskService;
+	
 	
 	
 	/**
@@ -110,22 +117,71 @@ public class BpmSecure {
 	 * @return
 	 */
 	@GET
-	@Path("reviewcontext/{hello}")
+	@Path("reviewcontext/{processID}/{hello}")
 	@RolesAllowed("myusergroup") 
 	@Produces(MediaType.APPLICATION_JSON)
-	public String reviewContext(@PathParam("hello") String hello,
+	public JsonNode reviewContext(@PathParam("processID") String processID,
+								@PathParam("hello") String hello,
 								@Context SecurityContext security) {
 
-		LOGGER.info("*** reviewContext - hello: " + hello);
+		LOGGER.info("*** reviewContext - variable hello: " + hello);
 		
 		String loginName = security.getUserPrincipal().getName();
 		LOGGER.info("*** reviewContext - getName: " + loginName);
-				
+					
+		
+		ProcessInstanceWithVariables pVariablesInReturn = runtimeService.createProcessInstanceByKey(processID)
+				.setVariable("hello", hello)
+				.executeWithVariablesInReturn();
+		
+		// Though I want to simply assign the entire process to a single owner..
+		//	It looks like only tasks are assigned an owner (I reviewed various Camunda tests)
+		// So, I'll get my waiting task and assign ownership via "claim" - noting that I assume the task is ready. 
 
-		// assemble a basic JSON reply and return
-		String echoReply = "{\"echoback\": \"" + hello + "\"}";
+ 		runtimeService
+ 			.getActiveActivityIds(pVariablesInReturn.getProcessInstanceId())
+ 			.forEach((activityId) -> {
+ 				LOGGER.info("*** Activity ID: "+ activityId);
+ 			} );
+ 						
+ 		// query task
+ 		Task task = taskService
+	 			.createTaskQuery()
+	 			.processInstanceId(pVariablesInReturn.getProcessInstanceId())
+	 			.active()
+	 			.singleResult();
+ 		
+ 		LOGGER.info("*** task getName: "+ task.getName());
+ 		LOGGER.info("*** task getId: "+ task.getId());
+ 		// before claiming
+ 		LOGGER.info("*** task getAssignee before claim: "+ task.getAssignee());
+ 		
+ 		// claim task for logged in user
+ 	 	taskService.claim(task.getId(), loginName);
+ 	 	
+ 	 	// query task after claim
+ 		Task taskAfterClaim = taskService
+	 			.createTaskQuery()
+	 			.processInstanceId(pVariablesInReturn.getProcessInstanceId())
+	 			.active()
+	 			.singleResult();
+ 		
+ 		// after claiming
+ 		LOGGER.info("*** task getAssignee after claim: "+ taskAfterClaim.getAssignee());
+ 		
+ 		// assemble a basic JSON reply and return
+		ObjectMapper mapper = new ObjectMapper();
+		ObjectNode returnJsonNode = mapper.createObjectNode();
+		returnJsonNode
+			.put("logged in user name", loginName)
+			.put("processID", processID)
+			.put("processInstanceID", pVariablesInReturn.getProcessInstanceId())
+			.put("claimed task name", taskAfterClaim.getName())
+			.put("claimed task instance ID", taskAfterClaim.getId())
+			.put("task assignee", taskAfterClaim.getAssignee());
 
-		return echoReply;
+		return returnJsonNode; 
+		
 	}
 	
 }
