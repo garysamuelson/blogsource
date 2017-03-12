@@ -75,8 +75,11 @@ public class BpmSecure {
 		return echoReply;
 	}
 	
+	
 	/**
 	 * 
+	 * @param hello
+	 * @return
 	 */
 	@GET
 	@Path("secureechoget/{hello}")
@@ -101,6 +104,7 @@ public class BpmSecure {
 	
 	/**
 	 * 
+	 * @param processID
 	 * @param hello
 	 * @param security
 	 * @return
