@@ -111,11 +111,11 @@ public class BpmSecure {
 	 */
 	@GET
 	@Path("reviewcontext/{processID}/{hello}")
-	@RolesAllowed("myusergroup") 
+	@RolesAllowed("myusergroup")
 	@Produces(MediaType.APPLICATION_JSON)
-	public JsonNode reviewContext(@PathParam("processID") String processID,
-								@PathParam("hello") String hello,
-								@Context SecurityContext security) {
+	public JsonNode reviewContext(@PathParam("processID") String processID, 
+			@PathParam("hello") String hello,
+			@Context SecurityContext security) {
 
 		LOGGER.info("*** reviewContext - variable hello: " + hello);
 		
