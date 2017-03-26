@@ -391,7 +391,7 @@
                     <authentication>
                         <login-module code="Database" flag="required">
                             <module-option name="dsJndiName" value="java:jboss/datasources/ProcessEngine"/>
-                            <module-option name="principalsQuery" value="RIGHT(PUBLIC.ACT_ID_USER.PWD_, LENGTH(PUBLIC.ACT_ID_USER.PWD_) - 5) as password FROM PUBLIC.ACT_ID_USER WHERE PUBLIC.ACT_ID_USER.ID_=?"/>
+                            <module-option name="principalsQuery" value="SELECT RIGHT(PUBLIC.ACT_ID_USER.PWD_, LENGTH(PUBLIC.ACT_ID_USER.PWD_) - 5) as password FROM PUBLIC.ACT_ID_USER WHERE PUBLIC.ACT_ID_USER.ID_=?"/>
                             <module-option name="rolesQuery" value="SELECT ACT_ID_MEMBERSHIP.GROUP_ID_ AS &quot;Role&quot;, 'Roles' AS &quot;RoleGroup&quot; FROM ACT_ID_MEMBERSHIP WHERE ACT_ID_MEMBERSHIP.USER_ID_=?"/>
                             <module-option name="hashAlgorithm" value="SHA"/>
                             <module-option name="hashEncoding" value="BASE64"/>
