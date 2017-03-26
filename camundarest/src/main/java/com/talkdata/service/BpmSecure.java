@@ -39,7 +39,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
  */
 @RequestScoped
 @Path("bpmsecure")
-@DeclareRoles({"myusergroup" }) 
+@DeclareRoles({"myusergroup","camgroup1"}) 
 public class BpmSecure {
 
 	/**
@@ -88,7 +88,8 @@ public class BpmSecure {
 	 */
 	@GET
 	@Path("secureechoget/{hello}")
-	@RolesAllowed("myusergroup")
+	@RolesAllowed({"myusergroup","camgroup1","camunda-admin"})
+	// @RolesAllowed({"camgroup1"})
 	@Produces(MediaType.APPLICATION_JSON)
 	public String secureEchoGet(@PathParam("hello") String hello, 
 			@Context SecurityContext security) {
