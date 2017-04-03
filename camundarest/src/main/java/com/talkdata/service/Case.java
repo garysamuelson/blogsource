@@ -16,9 +16,11 @@ import javax.ws.rs.core.MediaType;
 
 import org.camunda.bpm.engine.CaseService;
 import org.camunda.bpm.engine.RuntimeService;
+import org.camunda.bpm.engine.TaskService;
 import org.camunda.bpm.engine.runtime.CaseInstance;
 import org.camunda.bpm.engine.runtime.ProcessInstanceWithVariables;
 import org.camunda.bpm.engine.variable.VariableMap;
+import org.camunda.bpm.model.cmmn.instance.Task;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -54,6 +56,9 @@ public class Case {
    */
   @Inject
   private CaseService caseService;
+  
+  @Inject
+  private TaskService taskService;  
   
   
   
@@ -104,11 +109,25 @@ public class Case {
     **/
     
     CaseInstance caseInstance = caseService
-        .createCaseInstanceByKey(caseID);
+        .withCaseDefinitionByKey(caseID)
+        .setVariables(variables)
+        .create();
+        //.createCaseInstanceByKey(caseID);
     
     String ciid = caseInstance.getCaseInstanceId();
     
-    caseService.setVariables(ciid, variables);
+    //caseService.setVariables(ciid, variables);
+    
+    
+    
+    /**
+    Task task = taskService
+        .createTaskQuery()
+        .processInstanceId(ciid)
+        .active()
+        .singleResult();
+    **/
+    
     
     //caseService.m
     
