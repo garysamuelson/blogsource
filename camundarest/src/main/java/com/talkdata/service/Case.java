@@ -141,5 +141,84 @@ public class Case {
   
   }
   
+  
+  /**
+   * 
+   * Sample payload on the post
+    {
+      "caseID": "case_simple_01_cid",
+      "processVariables": [
+        {
+          "name": "hello",
+          "value": "greetings BPM"
+        },
+        {
+          "name": "myName",
+          "value": "Joe Smith"
+        },
+        {
+          "name": "customer",
+          "value": "Bob"
+        }
+      ]
+    }
+   *  
+   * @param hello
+   * @return
+   */
+  @POST
+  @Consumes(MediaType.APPLICATION_JSON)
+  @Produces(MediaType.APPLICATION_JSON)
+  @Path("casebasicstart")
+  public JsonNode caseBasicStart(JsonNode postpayload)  {
+    
+    // Testing out a new approach to receiving and returning
+    // Jackson JsonNode.
+    
+    LOGGER.info("*** caseBasicStart - invoked");    
+    
+    // get case ID
+    // NOTE: Using the "General -> Case Id" field value from the CMMN case model
+    String caseID = postpayload.findValue("caseID").asText();
+    
+    LOGGER.info("*** caseBasicStart - caseID: " + caseID);  
+    
+    // get the case/process variables
+    final JsonNode arrNode = postpayload.get("processVariables");
+    Map<String, Object> variables = new HashMap<String, Object>();
+
+    for (final JsonNode jsonNode : arrNode) {
+      variables.put(jsonNode.findValue("name").asText(), jsonNode.findValue("value").asText());
+    }
+    
+    // start the case
+    // NOTE: It appears that Case instance execution takes this thread - since, we
+    //  do not see any logger output (below) until the case completes.
+    //  Though we are not blocked and waiting for human tasks - the non-human tasks may
+    //    be causing this thread to block. 
+    //  At this point, the non-human tasks use the "sync" setting in CMMN diagram. 
+    CaseInstance caseInstance = caseService
+        .withCaseDefinitionByKey(caseID) // NOTE: this is the field value from General -> Case Id field
+        .setVariables(variables)
+        .create();
+        
+    String ciid = caseInstance.getCaseInstanceId();
+    
+    LOGGER.info("*** caseBasicStart - case started - ciid: " + ciid);
+    
+    LOGGER.info("*** caseBasicStart - case is active: " + caseInstance.isActive());  
+    
+    
+    // Simply returning back, or echoing, the received payload. 
+    // NOT yet reflecting actual case-execution results
+    return postpayload;
+  
+  }
+  
+  
+  
+  
+  
+  
 
 }
