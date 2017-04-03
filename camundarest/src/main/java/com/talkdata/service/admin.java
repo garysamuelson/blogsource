@@ -278,12 +278,13 @@ public class admin {
       
       String caseInstanceId = caseInstance.getCaseInstanceId();
       
-      LOGGER.info("*** Case caseInstanceId: " + caseInstanceId);
-      
       // if active: terminate and close
       if (caseInstance.isActive()) {
         LOGGER.info("*** Case is active - terminating and closing: " + caseInstanceId);
         caseService.terminateCaseExecution(caseInstanceId);
+        caseService.closeCaseInstance(caseInstanceId);
+      } else {
+        LOGGER.info("*** Case is terminated - closing: " + caseInstanceId);
         caseService.closeCaseInstance(caseInstanceId);
       }
       
