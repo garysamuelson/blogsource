@@ -175,7 +175,9 @@ public class Case {
     // Testing out a new approach to receiving and returning
     // Jackson JsonNode.
     
+    LOGGER.info("******************************");
     LOGGER.info("*** caseBasicStart - invoked");    
+    LOGGER.info("******************************");   
     
     // get case ID
     // NOTE: Using the "General -> Case Id" field value from the CMMN case model
@@ -203,6 +205,41 @@ public class Case {
         .create();
         
     String ciid = caseInstance.getCaseInstanceId();
+    
+    // Case is started - and stuff is now running
+    //  Quickly claim the case to save ourselves an extra click on the "claim" link
+    if (postpayload.hasNonNull("claim")) {
+      String claimId = postpayload.findValue("claim").asText();
+      LOGGER.info("*** caseBasicStart - found user to claim: " + claimId);  
+      /**
+      CaseInstance caseInstances = 
+          caseService
+            .createCaseInstanceQuery()
+            .active()
+            .singleResult();
+      
+      caseService.
+      **/
+      
+      // org.camunda.bpm.engine.task.Task task = taskService
+      
+      // if case is open, we claim it
+      if (caseInstance.isActive()) {
+        
+        org.camunda.bpm.engine.task.Task task 
+          = taskService
+            .createTaskQuery()
+            .caseInstanceId(ciid)
+            //.taskId("task_startNewCase_id")
+            .active()
+            .singleResult();
+        
+        taskService.claim(task.getId(), claimId);
+      }
+            
+    }
+
+    
     
     LOGGER.info("*** caseBasicStart - case started - ciid: " + ciid);
     
