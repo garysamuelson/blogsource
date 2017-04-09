@@ -1,6 +1,7 @@
 package com.talkdata.service;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 
@@ -17,10 +18,11 @@ import javax.ws.rs.core.MediaType;
 import org.camunda.bpm.engine.CaseService;
 import org.camunda.bpm.engine.RuntimeService;
 import org.camunda.bpm.engine.TaskService;
+import  org.camunda.bpm.engine.task.Task;
 import org.camunda.bpm.engine.runtime.CaseInstance;
 import org.camunda.bpm.engine.runtime.ProcessInstanceWithVariables;
 import org.camunda.bpm.engine.variable.VariableMap;
-import org.camunda.bpm.model.cmmn.instance.Task;
+//import org.camunda.bpm.model.cmmn.instance.Task;
 import org.camunda.spin.json.SpinJsonNode;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -31,7 +33,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 // SPIN imports - this will get confusing with plain-old jackson
 //import static org.camunda.spin.Spin.*;
 //import static org.camunda.spin.DataFormats.*;
-import static org.camunda.spin.DataFormats.*;
+//import static org.camunda.spin.DataFormats.*;
 import org.camunda.spin.Spin;
 import org.camunda.spin.json.SpinJsonNode;
 import org.camunda.bpm.engine.variable.VariableMap;
@@ -362,20 +364,27 @@ public class Case {
       
       // if case is open, we claim it
       // TEMP COMMENT OUT: we'll fix this in a minute
-      /**
+      
       if (caseInstance.isActive()) {
         
-        org.camunda.bpm.engine.task.Task task 
-          = taskService
+        //org.camunda.bpm.engine.task.Task task =  
+        //org.camunda.bpm.engine.task.List<Task> tasks =
+        List<Task> tasks = 
+          taskService
             .createTaskQuery()
             .caseInstanceId(ciid)
             //.taskId("task_startNewCase_id")
             .active()
-            .singleResult();
+            .list();
+             //.singleResult();
         
-        taskService.claim(task.getId(), claimId);
+        // claim all tasks to our received claimId (user) 
+        tasks
+          .forEach((task) ->  taskService.claim(task.getId(), claimId));
+        
+        //taskService.claim(task.getId(), claimId);
       }
-      **/
+      
             
     }
 
