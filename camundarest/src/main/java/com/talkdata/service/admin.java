@@ -77,21 +77,13 @@ public class admin {
    * 
    * @return
    */
+  /**
   @GET
   @Path("deleteallinstances")
   @Produces(MediaType.APPLICATION_JSON)
   public JsonNode deleteAllInstances() {
 
     LOGGER.info("*** deleteAllInstances invoked");
-    
-    /**
-    List<CaseExecution> CaseExecutions = 
-        caseService
-          //.createCaseInstanceQuery()
-          .createCaseExecutionQuery()
-          //.active()
-          .list();
-      **/
     
     List<CaseInstance> caseInstances = 
         caseService
@@ -148,18 +140,6 @@ public class admin {
     // runtimeService.deleteProcessInstancesAsync(caseInstanceIds, null, "foo reason");
     //caseExecutionManager.del
     
-    /**
-    // get list of instances
-    List<ProcessInstance> processInstances =
-      runtimeService.createProcessInstanceQuery()
-        .list();
-    
-    List<String> processInstanceIds = new ArrayList<String>();
-    
-    for (ProcessInstance processInstance : processInstances) {
-      processInstanceIds.add(processInstance.getId());
-    }
-    **/
 
     // this time we build a proper JSON return value - using Jackson
     ObjectMapper mapper = new ObjectMapper();
@@ -178,7 +158,7 @@ public class admin {
     // caseInstanceIds
     return rootObjectNode;
   }
-  
+  **/
   
   /**
    * 
@@ -260,12 +240,15 @@ public class admin {
     return null;
   }
   
-  
+  /**
+   * 
+   * 
+   * @return
+   */
   @GET
   @Path("cleanupcaseinstances")
   @Produces(MediaType.APPLICATION_JSON)
   public JsonNode cleanUpCaseInstances() {
-    
     
     List<CaseInstance> caseInstances = 
         caseService
@@ -304,7 +287,6 @@ public class admin {
     ObjectNode rootObjectNode = mapper.createObjectNode();
 
     // create the JSON node to hold the BPM returned variables
-    // ObjectNode processInstanceList = mapper.createObjectNode();
     ArrayNode caseInstanceList = mapper.createArrayNode();
     // attach to parent
     rootObjectNode.set("case IDs", caseInstanceList);
@@ -314,7 +296,6 @@ public class admin {
     
     // caseInstanceIds
     return rootObjectNode;
-    
     
   }
   
