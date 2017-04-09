@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
+import java.util.stream.StreamSupport;
 
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
@@ -20,12 +21,17 @@ import org.apache.camel.CamelContext;
 import org.apache.camel.ConsumerTemplate;
 import org.apache.camel.ProducerTemplate;
 import org.apache.camel.cdi.ContextName;
+import org.apache.chemistry.opencmis.client.api.CmisObject;
+import org.apache.chemistry.opencmis.client.api.Folder;
+import org.apache.chemistry.opencmis.client.api.ItemIterable;
+import org.apache.chemistry.opencmis.client.api.OperationContext;
 import org.apache.chemistry.opencmis.client.api.Repository;
 import org.apache.chemistry.opencmis.client.api.Session;
 import org.apache.chemistry.opencmis.client.api.SessionFactory;
 import org.apache.chemistry.opencmis.client.runtime.SessionFactoryImpl;
 import org.apache.chemistry.opencmis.commons.SessionParameter;
 import org.apache.chemistry.opencmis.commons.enums.BindingType;
+import org.xnio.streams.Streams;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
@@ -108,8 +114,10 @@ public class Cmis {
     parameters.put(SessionParameter.PASSWORD, "admin");
 
     // connection settings
-    parameters.put(SessionParameter.ATOMPUB_URL, "http://centosw02esx:8080/alfresco/api/-default-/public/cmis/versions/1.1/atom");
-    parameters.put(SessionParameter.BINDING_TYPE, BindingType.ATOMPUB.value());
+    parameters.put(SessionParameter.BROWSER_URL, "http://centosw02esx:8080/alfresco/api/-default-/public/cmis/versions/1.1/browser");
+    parameters.put(SessionParameter.BINDING_TYPE, BindingType.BROWSER.value());
+    //parameters.put(SessionParameter.ATOMPUB_URL, "http://centosw02esx:8080/alfresco/api/-default-/public/cmis/versions/1.1/atom");
+    //parameters.put(SessionParameter.BINDING_TYPE, BindingType.ATOMPUB.value());
     SessionFactory factory = SessionFactoryImpl.newInstance();
     
     List<Repository> repositories = factory.getRepositories(parameters);
@@ -138,8 +146,45 @@ public class Cmis {
     // create session
     // Session session = factory.createSession(parameters);
     
+    // attempting a listing
+    // --------------------
+    Folder rootFolder = cmisSession.getRootFolder();
+    LOGGER.info("*** pingCmis root folder ID: " + rootFolder.getId());    
+    LOGGER.info("*** pingCmis root folder path: " + rootFolder.getPath());
     
+    OperationContext folderOpCtx = cmisSession.createOperationContext();
+    folderOpCtx.setFilterString("cmis:objectId,cmis:objectTypeId,cmis:name,cmis:path");
     
+    ItemIterable<CmisObject> cmisObjects = rootFolder.getChildren(folderOpCtx);
+    // try using Streams now
+    CmisObject cmisSharedFolderObject = 
+        StreamSupport.stream( cmisObjects.spliterator(), false)
+          .filter((x) -> x.getName().equalsIgnoreCase("Shared"))
+          .findFirst()
+          .orElse(null);
+    
+    if (cmisSharedFolderObject != null) {
+      LOGGER.info("*** pingCmis found shared folder - Id: " + cmisSharedFolderObject.getId());
+    }
+    
+    // test some folder activity
+    // this should be a folder: 9fd7d5c2-d428-4415-b139-5f962282e61a
+    CmisObject cmisObject = cmisSession.getObject(cmisSharedFolderObject.getId());
+    Folder sharedFolder = null;
+    if (cmisObject instanceof Folder) {
+      sharedFolder = (Folder) cmisObject;
+    } else {
+      LOGGER.info("*** pingCmis shared folder: is not a folder");
+    }
+    
+    LOGGER.info("*** pingCmis shared folder path: " + sharedFolder.getPath());
+    
+    // list items in shared folders
+    folderOpCtx.setFilterString("cmis:folder,cmis:name,cmis:baseTypeId");
+    cmisObjects = sharedFolder.getChildren(folderOpCtx);
+    LOGGER.info("*** pingCmis list objects under shared:");
+    StreamSupport.stream( cmisObjects.spliterator(), false)
+      .forEach((x) -> LOGGER.info("baseTypeId: " + x.getBaseTypeId() + " , name: " + x.getName()));
     
     String echoReply = "{\"foo\": \"bar\"}";
     return echoReply; 
