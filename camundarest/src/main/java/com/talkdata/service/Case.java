@@ -296,17 +296,10 @@ public class Case {
 
     ObjectMapper mapper = new ObjectMapper();
     for (final JsonNode jsonNode : arrNode) {
-      // check for variable with children - which we'll assume is a JSON type
-      //if (jsonNode.get("value")
-      // variables.put(jsonNode.findValue("name").asText(), jsonNode.findValue("value").asText());
-      //if (jsonNode.size()
+      // check for variable with children - which we'll assume are of type JSON
       LOGGER.info("*** jsonNode - name: " + jsonNode.get("name").asText() + " , size: " + jsonNode.get("value").size());
       if (jsonNode.get("value").size() > 0) {
-        // variables.put(jsonNode.get("name").asText(), Spin.S(jsonNode.get("value").asText(),json()));
-        // variables.put(jsonNode.get("name").asText(), Spin.S(jsonNode.get("value").deepCopy(),json()));
         variables.put(jsonNode.get("name").asText(), Spin.JSON(mapper.writer().writeValueAsString(jsonNode.get("value"))));
-        // variables.put(jsonNode.get("name").asText(), (SpinJsonNode)Spin.JSON(mapper.writer().writeValueAsString(jsonNode.get("value"))));
-        //mapper.writer().writeValueAsString(hello)
       } else {
         variables.put(jsonNode.get("name").asText(), jsonNode.get("value").asText());
       }
