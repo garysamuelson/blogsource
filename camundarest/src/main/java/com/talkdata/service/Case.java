@@ -21,11 +21,22 @@ import org.camunda.bpm.engine.runtime.CaseInstance;
 import org.camunda.bpm.engine.runtime.ProcessInstanceWithVariables;
 import org.camunda.bpm.engine.variable.VariableMap;
 import org.camunda.bpm.model.cmmn.instance.Task;
+import org.camunda.spin.json.SpinJsonNode;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+
+// SPIN imports - this will get confusing with plain-old jackson
+//import static org.camunda.spin.Spin.*;
+//import static org.camunda.spin.DataFormats.*;
+import static org.camunda.spin.DataFormats.*;
+import org.camunda.spin.Spin;
+import org.camunda.spin.json.SpinJsonNode;
+import org.camunda.bpm.engine.variable.VariableMap;
+import org.camunda.bpm.engine.variable.Variables;
+// org.camunda.bpm.engine.variable.Variables.
 
 /**
  * Set of ReST examples for interacting with the Camunda engine 
@@ -253,6 +264,140 @@ public class Case {
   }
   
   
+  
+  /**
+   * 
+   * 
+   * @param postpayload
+   * @return
+   */
+  @POST
+  @Consumes(MediaType.APPLICATION_JSON)
+  @Produces(MediaType.APPLICATION_JSON)
+  @Path("casebasicstartspin")
+  public JsonNode caseBasicStartSpin(JsonNode postpayload)  throws Exception {
+    
+    // Testing out a new approach to receiving and returning
+    // Jackson JsonNode.
+    
+    LOGGER.info("********************************");
+    LOGGER.info("*** caseBasicStartSpin - invoked");    
+    LOGGER.info("********************************");   
+    
+    // get case ID
+    // NOTE: Using the "General -> Case Id" field value from the CMMN case model
+    String caseID = postpayload.findValue("caseID").asText();
+    
+    LOGGER.info("*** caseBasicStart - caseID: " + caseID);  
+    
+    // get the case/process variables
+    final JsonNode arrNode = postpayload.get("processVariables");
+    Map<String, Object> variables = new HashMap<String, Object>();
+
+    ObjectMapper mapper = new ObjectMapper();
+    for (final JsonNode jsonNode : arrNode) {
+      // check for variable with children - which we'll assume is a JSON type
+      //if (jsonNode.get("value")
+      // variables.put(jsonNode.findValue("name").asText(), jsonNode.findValue("value").asText());
+      //if (jsonNode.size()
+      LOGGER.info("*** jsonNode - name: " + jsonNode.get("name").asText() + " , size: " + jsonNode.get("value").size());
+      if (jsonNode.get("value").size() > 0) {
+        // variables.put(jsonNode.get("name").asText(), Spin.S(jsonNode.get("value").asText(),json()));
+        // variables.put(jsonNode.get("name").asText(), Spin.S(jsonNode.get("value").deepCopy(),json()));
+        variables.put(jsonNode.get("name").asText(), Spin.JSON(mapper.writer().writeValueAsString(jsonNode.get("value"))));
+        // variables.put(jsonNode.get("name").asText(), (SpinJsonNode)Spin.JSON(mapper.writer().writeValueAsString(jsonNode.get("value"))));
+        //mapper.writer().writeValueAsString(hello)
+      } else {
+        variables.put(jsonNode.get("name").asText(), jsonNode.get("value").asText());
+      }
+    }
+    
+    //-----------------------
+    // Spin Test
+    // ----------------------
+    // and now we add a special Camunda type called SPIN JSON
+    //  this is to get the lists available in our in-line Camunda forms. 
+    SpinJsonNode spinJsonCustomer = Spin.JSON("{\"customer\": \"Kermit\"}");
+    variables.put("spinJsonCustomerManualAdd",spinJsonCustomer); // <<< this works
+    
+    VariableMap variableMap2 = Variables.createVariables();
+    
+    // VariableMap variableMap = (VariableMap) new HashMap<String, Object>(); // <<< this fails
+    // VariableMap variableMap = Variables.create();
+    //VariableMap variableMap = Variables.create().
+        
+    // Spin customer doesn't resolve well. 
+    for (final JsonNode jsonNode : arrNode) {
+      variableMap2.put(jsonNode.findValue("name").asText(), jsonNode.findValue("value").asText());
+    }
+    
+    SpinJsonNode spinJsonCustomer2 = Spin.JSON("{\"customer\": \"Kermit\"}");
+    variableMap2.put("spinJsonCustomer2",spinJsonCustomer2); // <<< this works
+    
+    
+    // start the case
+    // NOTE: It appears that Case instance execution takes this thread - since, we
+    //  do not see any logger output (below) until the case completes.
+    //  Though we are not blocked and waiting for human tasks - the non-human tasks may
+    //    be causing this thread to block. 
+    //  At this point, the non-human tasks use the "sync" setting in CMMN diagram. 
+    CaseInstance caseInstance = caseService
+        .withCaseDefinitionByKey(caseID) // NOTE: this is the field value from General -> Case Id field
+        .setVariables(variables)
+        .create();
+        
+    
+    
+    String ciid = caseInstance.getCaseInstanceId();
+    
+    // Case is started - and stuff is now running
+    //  Quickly claim the case to save ourselves an extra click on the "claim" link
+    if (postpayload.hasNonNull("claim")) {
+      String claimId = postpayload.findValue("claim").asText();
+      LOGGER.info("*** caseBasicStart - found user to claim: " + claimId);  
+      /**
+      CaseInstance caseInstances = 
+          caseService
+            .createCaseInstanceQuery()
+            .active()
+            .singleResult();
+      
+      caseService.
+      **/
+      
+      // org.camunda.bpm.engine.task.Task task = taskService
+      
+      // if case is open, we claim it
+      // TEMP COMMENT OUT: we'll fix this in a minute
+      /**
+      if (caseInstance.isActive()) {
+        
+        org.camunda.bpm.engine.task.Task task 
+          = taskService
+            .createTaskQuery()
+            .caseInstanceId(ciid)
+            //.taskId("task_startNewCase_id")
+            .active()
+            .singleResult();
+        
+        taskService.claim(task.getId(), claimId);
+      }
+      **/
+            
+    }
+
+    
+    
+    LOGGER.info("*** caseBasicStart - case started - ciid: " + ciid);
+    
+    LOGGER.info("*** caseBasicStart - case is active: " + caseInstance.isActive());  
+    
+    
+    // Simply returning back, or echoing, the received payload. 
+    // NOT yet reflecting actual case-execution results
+    return postpayload;
+  
+  }
   
   
   
