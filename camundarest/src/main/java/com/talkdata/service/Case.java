@@ -312,8 +312,10 @@ public class Case {
     // ----------------------
     // and now we add a special Camunda type called SPIN JSON
     //  this is to get the lists available in our in-line Camunda forms. 
+    /**
     SpinJsonNode spinJsonCustomer = Spin.JSON("{\"customer\": \"Kermit\"}");
     variables.put("spinJsonCustomerManualAdd",spinJsonCustomer); // <<< this works
+    
     
     VariableMap variableMap2 = Variables.createVariables();
     
@@ -328,6 +330,7 @@ public class Case {
     
     SpinJsonNode spinJsonCustomer2 = Spin.JSON("{\"customer\": \"Kermit\"}");
     variableMap2.put("spinJsonCustomer2",spinJsonCustomer2); // <<< this works
+    **/
     
     
     // start the case
