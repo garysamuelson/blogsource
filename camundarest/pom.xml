@@ -19,6 +19,9 @@
     <maven.compiler.target>1.8</maven.compiler.target>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <failOnMissingWebXml>false</failOnMissingWebXml>
+    <wildfly.camel>4.5.0</wildfly.camel>  
+    <org.apache.camel>2.18.2</org.apache.camel>
+    <org.apache.chemistry>1.0.0</org.apache.chemistry>
   </properties>
 
   <dependencyManagement>
@@ -292,7 +295,101 @@
 	        <artifactId>jboss-concurrency-api_1.0_spec</artifactId>
 	       	<version>1.0.0.Final</version>  
 	        <scope>provided</scope>
-	    </dependency>	
+	    </dependency>
+
+
+		 
+		<dependency>
+			<groupId>org.wildfly.camel</groupId>
+			<artifactId>wildfly-camel-subsystem-core</artifactId>
+			<version>${wildfly.camel}</version>
+			<scope>provided</scope>
+		</dependency>
+		
+	    
+	    
+	    <!-- [GS] General Apache Camel -->
+	    <!-- https://mvnrepository.com/artifact/org.apache.camel/camel-core -->
+	   <!-- THIS MUST BE FOLLOWED BY A FULL MAVEN CLEAN/REPUBLISH or you'll see the ambigious name error -->
+		<!--
+		<dependency>
+		    <groupId>org.apache.camel</groupId>
+		    <artifactId>camel-core</artifactId>
+		    <version>${org.apache.camel}</version>
+		    <scope>provided</scope>
+		</dependency>
+		 -->
+		 
+		 <!--
+		 [GS] For now leaving this out until the Camel beans are defined - otherwise get the error: 
+			 Caused by: org.jboss.weld.exceptions.DeploymentException: 
+			 	WELD-001414: Bean name is ambiguous. Name cdi-event resolves to beans: 
+			 	
+			 	NOTE: requires a maven "clean" and full republish to make the error go away. 
+	 	 -->
+	 	 
+		<dependency>
+			<groupId>org.apache.camel</groupId>
+			<artifactId>camel-cdi</artifactId>
+			<version>${org.apache.camel}</version>
+			<scope>provided</scope>
+		</dependency>
+		   
+	    
+	    
+	    <!-- [GS] Apache Camel CMIS  -->
+	    <dependency>
+		    <groupId>org.apache.camel</groupId>
+		    <artifactId>camel-cmis</artifactId>
+		    <version>${org.apache.camel}</version>
+		</dependency>
+		
+		<!-- https://mvnrepository.com/artifact/org.apache.chemistry.opencmis/chemistry-opencmis-client-impl -->
+		<dependency>
+		    <groupId>org.apache.chemistry.opencmis</groupId>
+		    <artifactId>chemistry-opencmis-client-impl</artifactId>
+		    <version>${org.apache.chemistry}</version>
+		    <scope>compile</scope>
+		</dependency>
+		
+		<!-- [GS] Camunda spin -->
+		<!-- IT IS DAMN IMPORTANT to set scope as provided -->
+		<!--  Or, you'll see the error:
+			       java.lang.ClassCastException: org.camunda.spin.impl.json.jackson.JacksonJsonLogger 
+			       cannot be cast to org.camunda.commons.logging.BaseLogger"}, -->
+			       
+		<dependency>
+		  <groupId>org.camunda.spin</groupId>
+		  <artifactId>camunda-spin-dataformat-all</artifactId>
+		  <scope>provided</scope>
+		</dependency>
+		
+		 
+		<!--  
+		<dependency>
+			<groupId>org.camunda.spin</groupId>
+			<artifactId>camunda-spin-core</artifactId>
+			<scope>provided</scope>
+		</dependency>
+	
+		<dependency>
+			<groupId>org.camunda.spin</groupId>
+			<artifactId>camunda-spin-dataformat-json-jackson</artifactId>
+			<scope>provided</scope>
+		</dependency>
+	  -->
+	  
+		<dependency>
+			<groupId>org.camunda.bpm</groupId>
+			<artifactId>camunda-engine-plugin-spin</artifactId>
+			<scope>compile</scope>
+		</dependency>
+		
+		  
+
+
+		
+		
 
   </dependencies>
 
