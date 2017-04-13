@@ -1,0 +1,174 @@
+<strong>Here you would put the actual form to work on the task</strong>
+
+<p>
+  <code>embedded:app:forms/embedded/case-test-task-form01.html</code>
+</p>
+
+<form class="form-horizontal">
+
+   <div class="control-group">
+    <label class="control-label">cam-variable-name="customer" Json</label>
+    <div class="controls">
+      <input 
+         type="text" 
+         cam-variable-name="customer"
+         cam-variable-type="Json"
+         class="form-control" />      
+    </div>
+  </div>
+
+  <div class="control-group">
+    <label class="control-label">cam-variable-name: mySetVarString</label>
+    <div class="controls">
+      <input 
+         type="text" 
+         cam-variable-name="mySetVarString"
+         cam-variable-type="String"
+              
+         class="form-control" />      
+    </div>
+  </div>
+
+   <div class="control-group">
+      <label class="control-label">ng-model: customer.value.firstname</label>
+      <div class="controls">
+         <input 
+            type="text" 
+            ng-model="customer.value.firstname"
+            
+            cam-variable-type="String" 
+            class="form-control" />
+      </div>
+   </div>
+
+   <div class="control-group">
+      <label class="control-label">customField  field</label>
+      <div class="controls">
+         <input 
+            type="text" 
+            id="customField" 
+            class="form-control" />
+      </div>
+   </div>
+   
+   <div class="control-group">
+      <label class="control-label">cam-variable-name: hiddenField field</label>
+      <div class="controls">
+         <input 
+            cam-variable-name="hiddenField"
+            cam-variable-type="String" 
+            type="text" 
+            id="hiddenField" 
+            class="form-control" />
+      </div>
+   </div>
+
+
+
+   <!-- --------------------------------- -->
+
+   <script cam-script src="../../assets/js/camunda-bpm-sdk-angular.js"
+      type="text/javascript">
+
+   var variableManager = camForm.variableManager;
+
+   var customField = $('#customField', camForm.formElement);
+   var hiddenField = $('#hiddenField', camForm.formElement);
+
+
+   
+   // -----------------------------------
+   // form-loaded
+   // -----------------------------------
+   camForm.on('form-loaded', function() {
+      console.log('-------------------------- form-loaded');
+
+      // put this in a field for now to see how it manages change
+      variableManager.fetchVariable('customer');
+      //variableManager.fetchVariable('spinJsonNodeJonny');
+     
+   });   
+
+   // -----------------------------------
+   // variables-fetched
+   // -----------------------------------
+   camForm.on('variables-fetched', function() {
+      console.log('-------------------------- variables-fetched');
+
+      //$scope.scratch = variableManager.variableValue('customer');
+      $scope.customer = variableManager.variableValue('customer');
+      console.log('variables-fetched - scope.scratch: ' + $scope.customer);
+      console.log('variables-fetched - scope.scratch.firstname: ' + $scope.customer.value.firstname);
+
+      $scope.scratch = variableManager.variableValue('spinJsonNodeJonny');
+      console.log('variables-fetched - spinJsonNodeJonny: ' + $scope.scratch);
+      console.log('variables-fetched - spinJsonNodeJonny: ' + $scope.scratch.name);
+
+      var value = $scope.customer.value.firstname;
+      customField.val(value);
+
+      //$scope.hiddenField = 
+      
+     
+   });   
+
+
+   // -----------------------------------
+   // variables-restored
+   // -----------------------------------
+   camForm.on('variables-restored', function() {
+      console.log('-------------------------- variables-restored');
+      $scope.customer = variableManager.variableValue('customer');
+      console.log('variables-restored - scope.scratch: ' + $scope.customer);
+      console.log('variables-restored - scope.scratch.firstname: ' + $scope.customer.value.firstname);
+
+      var value = $scope.customer.value.firstname;
+      customField.val(value);
+     
+   });   
+
+
+   // -----------------------------------
+   // variables-applied
+   // -----------------------------------
+   camForm.on('variables-applied', function() {
+      console.log('-------------------------- variables-applied');
+      $scope.customer = variableManager.variableValue('customer');
+      console.log('variables-applied - scope.scratch: ' + $scope.customer);
+      console.log('variables-applied - scope.scratch.firstname: ' + $scope.customer.value.firstname);
+
+      var value = $scope.customer.value.firstname;
+      customField.val(value);
+      hiddenField.val(value);
+     
+   });   
+
+
+   // -----------------------------------
+   // store
+   // -----------------------------------
+   camForm.on('store', function() {
+      console.log('-------------------------- store');
+     
+   });   
+
+
+   // -----------------------------------
+   // submit
+   // -----------------------------------
+   camForm.on('submit', function() {
+      console.log('-------------------------- submit');
+     
+   });  
+
+   
+
+
+
+
+
+
+
+   
+  </script>
+</form>
