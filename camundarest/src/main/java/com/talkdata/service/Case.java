@@ -23,7 +23,10 @@ import org.camunda.bpm.engine.runtime.CaseInstance;
 import org.camunda.bpm.engine.runtime.ProcessInstanceWithVariables;
 import org.camunda.bpm.engine.variable.VariableMap;
 //import org.camunda.bpm.model.cmmn.instance.Task;
-import org.camunda.spin.json.SpinJsonNode;
+
+//import org.camunda.spin.json.SpinJsonNode;
+//import org.camunda.spin.plugin.variable.SpinValues;
+//import org.camunda.spin.plugin.variable.value.JsonValue;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -35,7 +38,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 //import static org.camunda.spin.DataFormats.*;
 //import static org.camunda.spin.DataFormats.*;
 import org.camunda.spin.Spin;
-import org.camunda.spin.json.SpinJsonNode;
+//import org.camunda.spin.json.SpinJsonNode;
 import org.camunda.bpm.engine.variable.VariableMap;
 import org.camunda.bpm.engine.variable.Variables;
 // org.camunda.bpm.engine.variable.Variables.
@@ -307,11 +310,50 @@ public class Case {
       }
     }
     
-    //-----------------------
+    // ================================
     // Spin Test
-    // ----------------------
+    // ================================
     // and now we add a special Camunda type called SPIN JSON
     //  this is to get the lists available in our in-line Camunda forms. 
+    
+    // RE-OPENNING this test to insure the JSON Spin object creation is in-line with 
+    //  form-sdk angularJS expectations. 
+    
+    // Create the Camunda VariableMap
+    org.camunda.bpm.engine.variable.VariableMap camVariableMap = Variables.createVariables();
+    
+    String json = "{\"name\" : \"jonny\","
+        + "\"address\" : {"
+          + "\"street\" : \"12 High Street\","
+          + "\"post code\" : 1234"
+          + "}"
+        + "}";
+    
+    // JsonValue jsonValue = SpinValues.jsonValue(json).create();
+    // JsonNode jsonNode = org.camunda.spin.plugin.variable.SpinValues.jsonValue(json).create();
+    
+    org.camunda.spin.json.SpinJsonNode spinJsonNodeJonny = org.camunda.spin.Spin.JSON(json);
+    camVariableMap.put("spinJsonNodeJonny", spinJsonNodeJonny);
+    
+    // now pick up the customer JSON node and load using camunda types 
+    for (final JsonNode jsonNode : arrNode) {
+      // check for variable with children - which we'll assume are of type JSON
+      LOGGER.info("*** jsonNode - name: " + jsonNode.get("name").asText() + " , size: " + jsonNode.get("value").size());
+      if (jsonNode.get("value").size() > 0) {
+        String camundaJsonNodeString = mapper.writer().writeValueAsString(jsonNode);
+        org.camunda.spin.json.SpinJsonNode spinJsonNode = org.camunda.spin.Spin.JSON(camundaJsonNodeString);
+        camVariableMap.put(jsonNode.get("name").asText(), spinJsonNode);
+      } else {
+        // we do nothing because we're only testing Camunda's JSON type variables
+      }
+    }
+    
+    /** see above - using forloop - avoiding loading an array type
+    String customerJsonNodeString = mapper.writer().writeValueAsString(customerJsonNode);
+    org.camunda.spin.json.SpinJsonNode spinJsonNodeCustomer = org.camunda.spin.Spin.JSON(customerJsonNodeString);
+    camVariableMap.put("spinJsonNodeCustomer", spinJsonNodeCustomer);
+    **/
+    
     /**
     SpinJsonNode spinJsonCustomer = Spin.JSON("{\"customer\": \"Kermit\"}");
     variables.put("spinJsonCustomerManualAdd",spinJsonCustomer); // <<< this works
@@ -341,7 +383,8 @@ public class Case {
     //  At this point, the non-human tasks use the "sync" setting in CMMN diagram. 
     CaseInstance caseInstance = caseService
         .withCaseDefinitionByKey(caseID) // NOTE: this is the field value from General -> Case Id field
-        .setVariables(variables)
+        // .setVariables(variables)
+        .setVariables(camVariableMap)
         .create();
         
     
