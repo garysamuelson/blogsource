@@ -21,7 +21,7 @@
     <failOnMissingWebXml>false</failOnMissingWebXml>
     <wildfly.camel>4.5.0</wildfly.camel>  
     <org.apache.camel>2.18.2</org.apache.camel>
-    <org.apache.chemistry>1.0.0</org.apache.chemistry>
+    <org.apache.chemistry>1.0.0</org.apache.chemistry> 
   </properties>
 
   <dependencyManagement>
