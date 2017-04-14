@@ -4,19 +4,27 @@
   <code>embedded:app:forms/embedded/case-test-task-form01.html</code>
 </p>
 
+
 <form class="form-horizontal">
 
+   
+   
+   <!--  This just isn't happy with anything: cam-varialbe-type="json" -->
+   <!--  
    <div class="control-group">
-    <label class="control-label">cam-variable-name="customer" Json</label>
+    <label class="control-label">cam-variable-name: customer_json</label>
     <div class="controls">
       <input 
-         type="text" 
-         cam-variable-name="customer"
+         type="text"
+         id="customer_json" 
+         cam-variable-name="mySetVarString2"
          cam-variable-type="Json"
          class="form-control" />      
     </div>
   </div>
+   -->
 
+   <!--  
   <div class="control-group">
     <label class="control-label">cam-variable-name: mySetVarString</label>
     <div class="controls">
@@ -28,14 +36,56 @@
          class="form-control" />      
     </div>
   </div>
+  -->
 
+   <!-- Here is a typical ng-model showing a JSON field value
+         Problem is that the "save" button (embedded form) does not work correctly -->
    <div class="control-group">
       <label class="control-label">ng-model: customer.value.firstname</label>
       <div class="controls">
          <input 
             type="text" 
-            ng-model="customer.value.firstname"
-            
+            ng-model="customer.value.firstname"            
+            cam-variable-type="String" 
+            class="form-control" />
+      </div>
+   </div>
+   
+   <!--  
+   <div class="control-group">
+      <label class="control-label">cam-variable-nam: spinJsonNodeJonny.name</label>
+      <div class="controls">
+         <input 
+            type="text" 
+            cam-variable-name="spinJsonNodeJonny"      
+                 
+            cam-variable-type="Json" 
+            class="form-control" />
+      </div>
+   </div>
+   <div class="control-group">
+      <label class="control-label">cam-variable-nam: spinJsonNodeJonny.name</label>
+      <div class="controls">
+         <input 
+            type="text" 
+            ng-model="spinJsonNodeJonny.name"      
+                 
+            cam-variable-type="String" 
+            class="form-control" />
+      </div>
+   </div>
+    -->
+   
+   
+   <!-- Save button work-around, I'll push the field value into this form and 
+         use the 'save' event to better manage updates for both server and form -->
+   <div class="control-group">
+      <label class="control-label">cam-variable-name: customer_value_firstname</label>
+      <div class="controls">
+         <input 
+            type="text" 
+            id="customer_value_firstname"
+            cam-variable-name="customer_value_firstname"            
             cam-variable-type="String" 
             class="form-control" />
       </div>
@@ -66,15 +116,16 @@
 
 
    <!-- --------------------------------- -->
-
-   <script cam-script src="../../assets/js/camunda-bpm-sdk-angular.js"
+   <!-- This reference is a problem given the embedded form. I'll  need to manually add it to apps
+         to help with JS debugging -->
+   <script cam-script src="http://centosw02:8080/camundarest/assets/js/camunda-bpm-sdk-angular.js"
       type="text/javascript">
 
    var variableManager = camForm.variableManager;
 
    var customField = $('#customField', camForm.formElement);
    var hiddenField = $('#hiddenField', camForm.formElement);
-
+   var customer_value_firstname = $('#customer_value_firstname', camForm.formElement);
 
    
    // -----------------------------------
@@ -95,20 +146,38 @@
    camForm.on('variables-fetched', function() {
       console.log('-------------------------- variables-fetched');
 
-      //$scope.scratch = variableManager.variableValue('customer');
+      // bind customer variable to customer field
+      console.log('variables-fetched - bind scope.customer');
       $scope.customer = variableManager.variableValue('customer');
-      console.log('variables-fetched - scope.scratch: ' + $scope.customer);
-      console.log('variables-fetched - scope.scratch.firstname: ' + $scope.customer.value.firstname);
+      console.log('variables-fetched - scope.customer: ' + angular.toJson($scope.customer));
+      //console.log('variables-fetched - scope.scratch.firstname: ' + $scope.customer.value.firstname);
+      
+      // Set field customer_value_firstname to customer.value.firstname
+      //var firstname = $scope.customer.value.firstname;
+      // customer_value_firstname.val(firstname); <<< this didn't work
+      //console.log('variables-fetched - setting customer_value_firstname to scope.customer.value.firstname');
+      //$scope.customer_value_firstname = $scope.customer.value.firstname;
 
-      $scope.scratch = variableManager.variableValue('spinJsonNodeJonny');
-      console.log('variables-fetched - spinJsonNodeJonny: ' + $scope.scratch);
-      console.log('variables-fetched - spinJsonNodeJonny: ' + $scope.scratch.name);
+      // bind spinJsonNodeJonny variable to customer field
+      //console.log('variables-fetched - bind scope.customer');
+      //$scope.scratch = variableManager.variableValue('spinJsonNodeJonny');
+      //console.log('variables-fetched - spinJsonNodeJonny: ' + $scope.scratch);
+      //console.log('variables-fetched - spinJsonNodeJonny: ' + $scope.scratch.name);
+      
+      //$scope.spinJsonNodeJonny = variableManager.variableValue('spinJsonNodeJonny');
+      
 
       var value = $scope.customer.value.firstname;
       customField.val(value);
-
+      //$scope.scratch2 = $scope.scratch;
+      //$scope.scratch2 =  JSON.parse($scope.customer.value);
+      //customer_json.var(variableManager.variableValue('customer'));
       //$scope.hiddenField = 
       
+      //$scope.scratch2 = variableManager.variable('spinJsonNodeJonny').value;
+      var foo = angular.toJson($scope.customer);
+      console.log('foo: ' + foo);
+      //$scope.mySetVarString2 = variableManager.variableValue('customer');
      
    });   
 
@@ -124,6 +193,7 @@
 
       var value = $scope.customer.value.firstname;
       customField.val(value);
+
      
    });   
 
@@ -140,6 +210,7 @@
       var value = $scope.customer.value.firstname;
       customField.val(value);
       hiddenField.val(value);
+      customer_value_firstname.val(value);
      
    });   
 
