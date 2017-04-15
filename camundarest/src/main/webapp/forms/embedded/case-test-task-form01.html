@@ -40,17 +40,19 @@
 
    <!-- Here is a typical ng-model showing a JSON field value
          Problem is that the "save" button (embedded form) does not work correctly -->
+   <!--       
    <div class="control-group">
       <label class="control-label">ng-model: customer.value.firstname</label>
       <div class="controls">
          <input 
-            type="text" 
+            type="hidden" 
             ng-model="customer.value.firstname"            
             cam-variable-type="String" 
             class="form-control" />
       </div>
    </div>
-   
+    -->
+    
    <!-- Save button work-around, I'll push the field value into this form and 
          use the 'save' event to better manage updates for both server and form -->
    <div class="control-group">
@@ -185,6 +187,9 @@
    // -----------------------------------
    camForm.on('submit', function() {
       console.log('-------------------------- submit');
+
+   // save customer_value_firstname back to json
+   $scope.customer.value.firstname = $scope.customer_value_firstname;
      
    });  
 
