@@ -67,6 +67,7 @@
       </div>
    </div>
 
+   <!-- 
    <div class="control-group">
       <label class="control-label">customField  field</label>
       <div class="controls">
@@ -88,8 +89,20 @@
             class="form-control" />
       </div>
    </div>
+    -->
 
-
+   <div class="control-group">
+      <label class="control-label">List of values from sample_array.value</label>
+      <div class="controls">
+         <!-- <div ng-repeat="listElement in sample_array.value">  -->
+         <ul>
+            <li ng-repeat="listElement in sample_array.value">
+               {{listElement}}
+            </li>
+         </ul>
+         <!-- </div>  -->
+      </div>
+   </div>
 
    <!-- --------------------------------- -->
    <!-- This reference is a problem given the embedded form. I'll  need to manually add it to apps
@@ -113,6 +126,9 @@
       // put this in a field for now to see how it manages change
       variableManager.fetchVariable('customer');
       //variableManager.fetchVariable('spinJsonNodeJonny');
+
+      // load sample_array from process vars
+      variableManager.fetchVariable('sample_array');
      
    });   
 
@@ -132,6 +148,10 @@
       
       var foo = angular.toJson($scope.customer);
       console.log('foo: ' + foo);
+
+      // fetch the sample_array
+      $scope.sample_array = variableManager.variableValue('sample_array');
+      console.log('variables-fetched - scope.sample_array: ' + angular.toJson($scope.sample_array));
       
      
    });   
