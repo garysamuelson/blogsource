@@ -26,12 +26,42 @@
       <label class="control-label col-md-2">First Name:</label>
       <div class="col-md-10">
          <input ng-model="customer.firstname" 
+                
+                
                 type="text" 
                 name="customer.firstname"
                 id="customer.firstname"
                 class="form-control" />
       </div>
    </div>
+   
+   <!-- Using a custom field instead. the json isn't brought forward from form correctly on return -->
+   <div class="form-group">
+      <label class="control-label col-md-2">customerId:</label>
+      <div class="col-md-10">
+         <input cam-variable-name="customerId" 
+                cam-variable-type="String" 
+                type="text"
+                name="customerId" 
+                id="customerId"
+                class="form-control" />
+      </div>
+   </div>
+
+
+   <div class="form-group">
+      <label class="control-label col-md-2">First Name2:</label>
+      <div class="col-md-10">
+         <input 
+            ng-model="myJson.firstName" 
+            
+            type="text"
+
+            />
+      </div>
+   </div>
+
+   <!--  <input type="text" ng-model="myJson.firstName" required />  --> 
 
 
 
@@ -41,133 +71,165 @@
    <script cam-script src="../assets/js/camunda-bpm-sdk-angular.js"
       type="text/javascript">
 	
-	//debugger;
+	// debugger;
+   
+   //$scope.customerId = null;
 
    var variableManager = camForm.variableManager;
+   $scope.customer = null;
    //var customField = $('#customer.firstname', camForm.formElement);
-
+   
+   console.log('**** SCRIPT RELOADED ****');  
+   
+   var myJson = $scope.myJson = {
+    firstName: 'John',
+    lastName: 'Doe'
+   };
+   
+   
+   // -----------------------------------
+   // form-loaded
+   // -----------------------------------
 	camForm.on('form-loaded', function() {
+		console.log('-------------------------- form-loaded called');
     	// tell the form SDK to fetch the variable named 'customer'
-      console.log('form-loaded called');
-    	camForm.variableManager.fetchVariable('customer');
+      //console.log('form-loaded called');
+    	
+      camForm.variableManager.fetchVariable('customer');
 
+      if (angular.isDefined($scope.customer)  && ($scope.customer != null)) {
+    	 console.log('form-loaded - scope.customer.firstname: ' + $scope.customer.firstname);
+      } else {
+    	  console.log('form-loaded - scope.customer NOT DEFINED: ');   
+      }
+
+     // declare a 'json' variable 'customer'
+     camForm.variableManager.createVariable({
+       name: 'myJson',
+       type: 'json',
+       value: myJson
+     });   
+
+     // customVariable
+     variableManager.fetchVariable('customVariable');  
+     //variableManager.fetchVariable('customerId');
+
+     //$scope.customer = camForm.variableManager.variableValue('customer');
+     //console.log('form-loaded - scope.customer.firstname AFTER fetch: ' + $scope.customer.firstname);
+     //console.log('form-loaded - scope.customer.firstname: ' + $scope.customer.firstname);
+     console.log('form-loaded - scope.customerId: ' + $scope.customerId);
+     
   	});	
 
+   // -----------------------------------
+   // variables-fetched
+   // -----------------------------------
   	camForm.on('variables-fetched', function() {
+  		console.log('-------------------------- variables-fetched called');
     	// work with the variable (bind it to the current AngularJS $scope)
-      console.log('variables-fetched called');
+      //console.log('variables-fetched called');
     	//$scope.customer = camForm.variableManager.variableValue('customer');
 		//console.log('JSON Variable customer.firstname: ' + $scope.customer.firstname);
-      if (angular.isDefined($scope.customer)) {
-    	  console.log('customer value is  defined');
-    	  console.log('customer value before fetch: ' + $scope.customer.firstname);
+      if (angular.isDefined($scope.customer)  && ($scope.customer != null)) {
+    	  console.log('variables-fetched - customer value is  defined');
+    	  console.log('variables-fetched - scope.customer.firstname BEFORE fetch: ' + $scope.customer.firstname);
       } else {
-    	  console.log('customer value is not  defined');
+    	  console.log('variables-fetched - customer not  defined');
       }
       
       $scope.customer = camForm.variableManager.variableValue('customer');
-      console.log('customer value after fetch: ' + $scope.customer.firstname);
+      console.log('variables-fetched - scope.customer.firstname: ' + $scope.customer.firstname);
+
+      //camForm.variableManager.variableValue(customerId);
+      //variableManager.variable('customerId').value
+      //debugger;
+      console.log('foo: ' + variableManager.variable('customer').value);
+      
+      // customVariable
+      $scope.customerId = variableManager.variable('customerId').value;
+      //$scope.customerId = variableManager.variable('customerId').value;
+      console.log('variables-fetched - scope.customerId: ' + $scope.customerId);
+      console.log('variables-fetched - variableManager.variable(customerId).value: ' + variableManager.variable('customerId').value);
+      //console.log('variables-fetched - variableManager.variableValue(customerId): ' + camForm.variableManager.variableValue(customerId));
+      //console.log('variables-fetched - scope.customerId: ' + $scope.customerId);
       
   	});
 
+    
+    // -----------------------------------
+    // variables-restored
+    // -----------------------------------
+  	camForm.on('variables-restored', function() {
+  	     console.log('-------------------------- variables-restored called');
+  	     // handle variables applied
+  	     //console.log('variables-restored called');
+  	     console.log('variables-restored - customer.firstname: ' + $scope.customer.firstname);
+  	     //console.log('variables-restored - customer.firstname: ' + variableManager. variable('customer').value);
+
+       // customerId
+  	    console.log('variables-restored - scope.customerId: ' + $scope.customerId);
+  	   });
+
+    
+
+    // -----------------------------------
+    // variables-applied
+    // ----------------------------------- 
 	camForm.on('variables-applied', function() {
      // handle variables applied
-	  console.log('variables-applied called');
+     console.log('-------------------------- variables-applied called');
+	  //console.log('variables-applied called');
      console.log('variables-applied - customer.firstname: ' + $scope.customer.firstname);
+
+     // customerId
+     console.log('variables-applied - scope.customerId: ' + $scope.customerId);
+     
    });
 		
-   
-	camForm.on('variables-stored', function() {
+
+
+	 // -----------------------------------
+    // store
+    // ----------------------------------- 
+	camForm.on('store', function(evt) {
+		console.log('-------------------------- store called');
+	      // handle store
+	      // may prevent the store from being executed
+	      //evt.storePrevented = true;
+      //console.log('store called');
+		console.log('store - scope.customer.firstname: ' + $scope.customer.firstname);
+		//camForm.variableManager.variableValue('customer',$scope.customer);
+
+		console.log('store - scope.customerId: ' + $scope.customerId);
+      
+	}); 
+
+    // -----------------------------------
+    // variables-stored
+    // ----------------------------------- 
+   camForm.on('variables-stored', function() {
       // handle variables stored
-      console.log('variables-stored called');
+      console.log('-------------------------- variables-stored called');
+      //console.log('variables-stored called');
       //console.log('variables-stored before - customer.firstname: ' + $scope.customer.firstname);
       console.log('variables-stored - saving customer.firstname: ' + $scope.customer.firstname);
       //camForm.variableManager.variableValue('customer',$scope.customer);
       //console.log('variables-stored after - customer.firstname: ' + $scope.customer.firstname);
-      
-   });
 
-	camForm.on('store', function(evt) {
-	      // handle store
-	      // may prevent the store from being executed
-	      //evt.storePrevented = true;
-      console.log('store called');
-		console.log('store called customer.firstname: ' + $scope.customer.firstname);
-		camForm.variableManager.variableValue('customer',$scope.customer);
-	}); 
+      // customerId
+      console.log('variables-stored - scope.customerId: ' + $scope.customerId);
+      
+      
+   });	   
 
    camForm.on('submit', function() {
+	   console.log('-------------------------- submit called');
       // handle variables stored
       console.log('submit called');
     });
 
    </script>
    
-   <!-- 
-   <h2> - Greetings User:  {{ userName }}</h1>
-    -->
-	<!--  
-	<script cam-script type="text/form-script">
-		$scope.showUploadArea = false;
-		$scope.showUploadBtn = true;
-		$scope.showProgressIndicator = false;
 
-		var $form = $('#uploadForm');
-		$('input[type="file"]', $form).change(function() {
-      		var hasFile = $('input[type="file"]', $form)[0].files.length > 0;
-      		if (hasFile) {
-				$scope.showUploadArea = true;
-			} else {
-				$scope.showUploadArea = false;
-			}
-			$scope.$apply();
-		});
-		$scope.uploadFile = function(){
-    		var formData = new FormData($form[0]);
-			$scope.showProgressIndicator = true;
-			$scope.showUploadBtn = false;
-			$scope.fileUploadHelpBlockShow = false;
-			$scope.fileUploadHelpBlockClass = '';
-
-    		$.ajax({
-        		url: '/camunda-invoice-cmis/rest/rest/upload',  //Server script to process data
-        		type: 'POST',
-				success: function(data) {
-					if (data != null) {
-						var response = JSON.parse(data);
-						var filename = response.filename;
-						$('input[name="boxfolder"]').val(response.uniqueID);
-						$scope.showProgressIndicator = false;
-						$scope.showUploadBtn = true;
-
-						if ($scope.uploadedDocuments != null) {
-							$scope.uploadedDocuments.push({name:filename});
-						} else {
-							var uploadedDocuments = [];
-							uploadedDocuments.push({name:filename});
-							$scope.uploadedDocuments = uploadedDocuments;
-						}
-						$scope.$apply();
-					}
-				},
-				data: formData,
-        		//Options to tell jQuery not to process data or worry about content-type.
-        		cache: false,
-        		contentType: false,
-        		processData: false
-    		});
-		};
- 		camForm.on('submit', function(evt) {
-			if ($scope.uploadedDocuments == null || $scope.uploadedDocuments.length<1) {
-				evt.submitPrevented = true;
-				$scope.fileUploadHelpBlockShow = true;
-				$scope.fileUploadHelpBlockClass = 'error';
-			} else {
-				$scope.fileUploadHelpBlockShow = false;
-				$scope.fileUploadHelpBlockClass = '';
-			}
-    	});
-	</script>
-	-->
 </form>
 
