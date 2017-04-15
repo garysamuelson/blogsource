@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cmmn:definitions xmlns:dc="http://www.omg.org/spec/CMMN/20151109/DC" xmlns:di="http://www.omg.org/spec/CMMN/20151109/DI" xmlns:cmmndi="http://www.omg.org/spec/CMMN/20151109/CMMNDI" xmlns:cmmn="http://www.omg.org/spec/CMMN/20151109/MODEL" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:camunda="http://camunda.org/schema/1.0/cmmn" id="Test" targetNamespace="http://bpmn.io/schema/cmmn" exporter="Camunda Modeler" exporterVersion="1.7.2">
+  <cmmn:case id="case_simple_forms_01_cid" name="case_simple_forms_01">
+    <cmmn:casePlanModel id="CasePlanModel_1" name="case_simple_forms_01">
+      <cmmn:extensionElements>
+        <camunda:caseExecutionListener event="create" expression="#{printProcessVars.printCaseVariables(execution)}" />
+        <camunda:caseExecutionListener event="complete" expression="#{printProcessVars.printCaseVariables(execution)}" />
+      </cmmn:extensionElements>
+      <cmmn:planItem id="task_embedded_form_id" definitionRef="HumanTask_0270qqb">
+        <cmmn:itemControl id="PlanItemControl_1i409xi">
+          <cmmn:requiredRule id="RequiredRule_00uqg28" />
+        </cmmn:itemControl>
+      </cmmn:planItem>
+      <cmmn:planItem id="task_print_process_vars_id" definitionRef="Task_0u2hmve">
+        <cmmn:entryCriterion id="EntryCriterion_0dbvh4a" sentryRef="Sentry_1hxt6e5" />
+      </cmmn:planItem>
+      <cmmn:planItem id="task_repeatable_embedded_form_id" definitionRef="HumanTask_04sh0av">
+        <cmmn:itemControl id="PlanItemControl_08nlbad">
+          <cmmn:repetitionRule id="RepetitionRule_1fwtpcp" camunda:repeatOnStandardEvent="complete" />
+        </cmmn:itemControl>
+      </cmmn:planItem>
+      <cmmn:sentry id="Sentry_1hxt6e5">
+        <cmmn:planItemOnPart id="PlanItemOnPart_0r9znjz" sourceRef="task_embedded_form_id">        <cmmn:standardEvent>complete</cmmn:standardEvent>
+</cmmn:planItemOnPart>
+      </cmmn:sentry>
+      <cmmn:sentry id="Sentry_0csir1g">
+        <cmmn:planItemOnPart id="PlanItemOnPart_09k3jbn" sourceRef="task_print_process_vars_id">        <cmmn:standardEvent>complete</cmmn:standardEvent>
+</cmmn:planItemOnPart>
+      </cmmn:sentry>
+      <cmmn:humanTask id="HumanTask_0270qqb" name="embedded form" camunda:formKey="embedded:app:forms/embedded/case-test-task-form01.html" />
+      <cmmn:task id="Task_0u2hmve" name="print process vars">
+        <cmmn:extensionElements>
+          <camunda:caseExecutionListener event="create" expression="#{printProcessVars.printCaseVariables(execution)}" />
+        </cmmn:extensionElements>
+      </cmmn:task>
+      <cmmn:humanTask id="HumanTask_04sh0av" name="repeatable embedded form" camunda:formKey="embedded:app:forms/embedded/case-test-task-form01.html" camunda:assignee="admin">
+        <cmmn:extensionElements>
+          <camunda:caseExecutionListener event="complete" expression="#{printProcessVars.printCaseVariables(execution)}" />
+        </cmmn:extensionElements>
+      </cmmn:humanTask>
+      <cmmn:exitCriterion id="ExitCriterion_1hirzbm" sentryRef="Sentry_0csir1g" />
+    </cmmn:casePlanModel>
+  </cmmn:case>
+  <cmmn:textAnnotation id="TextAnnotation_0s9ckc9">  <cmmn:text>Test web-ui embedded form</cmmn:text>
+</cmmn:textAnnotation>
+  <cmmn:association id="Association_0acxy32" sourceRef="task_embedded_form_id" targetRef="TextAnnotation_0s9ckc9" />
+  <cmmn:association id="Association_1flmkff" sourceRef="task_print_process_vars_id" targetRef="TextAnnotation_05rrekk" />
+  <cmmn:textAnnotation id="TextAnnotation_05rrekk">  <cmmn:text>Print the process variables</cmmn:text>
+</cmmn:textAnnotation>
+  <cmmndi:CMMNDI>
+    <cmmndi:CMMNDiagram id="_5a66685b-5f57-4e2f-b1d1-acca4fae04b2">
+      <cmmndi:Size xsi:type="dc:Dimension" width="500" height="500" />
+      <cmmndi:CMMNShape id="DI_CasePlanModel_1" cmmnElementRef="CasePlanModel_1">
+        <dc:Bounds x="480" y="228" width="457" height="277" />
+        <cmmndi:CMMNLabel />
+      </cmmndi:CMMNShape>
+      <cmmndi:CMMNShape id="PlanItem_1yf8m4x_di" cmmnElementRef="task_embedded_form_id">
+        <dc:Bounds x="532" y="291" width="100" height="80" />
+        <cmmndi:CMMNLabel />
+      </cmmndi:CMMNShape>
+      <cmmndi:CMMNShape id="PlanItem_1lo2upm_di" cmmnElementRef="task_print_process_vars_id">
+        <dc:Bounds x="720" y="291" width="100" height="80" />
+        <cmmndi:CMMNLabel />
+      </cmmndi:CMMNShape>
+      <cmmndi:CMMNShape id="EntryCriterion_0dbvh4a_di" cmmnElementRef="EntryCriterion_0dbvh4a">
+        <dc:Bounds x="710" y="316" width="20" height="28" />
+        <cmmndi:CMMNLabel />
+      </cmmndi:CMMNShape>
+      <cmmndi:CMMNEdge id="PlanItemOnPart_0r9znjz_di" cmmnElementRef="PlanItemOnPart_0r9znjz" targetCMMNElementRef="EntryCriterion_0dbvh4a" isStandardEventVisible="true">
+        <di:waypoint xsi:type="dc:Point" x="632" y="331" />
+        <di:waypoint xsi:type="dc:Point" x="710" y="330" />
+        <cmmndi:CMMNLabel>
+          <dc:Bounds x="647" y="306.5" width="52" height="13" />
+        </cmmndi:CMMNLabel>
+      </cmmndi:CMMNEdge>
+      <cmmndi:CMMNShape id="ExitCriterion_1hirzbm_di" cmmnElementRef="ExitCriterion_1hirzbm">
+        <dc:Bounds x="927" y="317" width="20" height="28" />
+        <cmmndi:CMMNLabel />
+      </cmmndi:CMMNShape>
+      <cmmndi:CMMNEdge id="PlanItemOnPart_09k3jbn_di" cmmnElementRef="PlanItemOnPart_09k3jbn" targetCMMNElementRef="ExitCriterion_1hirzbm" isStandardEventVisible="true">
+        <di:waypoint xsi:type="dc:Point" x="820" y="331" />
+        <di:waypoint xsi:type="dc:Point" x="927" y="331" />
+        <cmmndi:CMMNLabel>
+          <dc:Bounds x="840" y="306" width="52" height="13" />
+        </cmmndi:CMMNLabel>
+      </cmmndi:CMMNEdge>
+      <cmmndi:CMMNShape id="TextAnnotation_0s9ckc9_di" cmmnElementRef="TextAnnotation_0s9ckc9">
+        <dc:Bounds x="615.7987499999999" y="248.59625" width="100" height="30" />
+        <cmmndi:CMMNLabel />
+      </cmmndi:CMMNShape>
+      <cmmndi:CMMNEdge id="Association_0acxy32_di" cmmnElementRef="Association_0acxy32">
+        <di:waypoint xsi:type="dc:Point" x="632" y="291" />
+        <di:waypoint xsi:type="dc:Point" x="648" y="279" />
+        <cmmndi:CMMNLabel />
+      </cmmndi:CMMNEdge>
+      <cmmndi:CMMNShape id="TextAnnotation_05rrekk_di" cmmnElementRef="TextAnnotation_05rrekk">
+        <dc:Bounds x="748" y="248" width="164" height="31" />
+        <cmmndi:CMMNLabel />
+      </cmmndi:CMMNShape>
+      <cmmndi:CMMNEdge id="Association_1flmkff_di" cmmnElementRef="Association_1flmkff">
+        <di:waypoint xsi:type="dc:Point" x="806" y="291" />
+        <di:waypoint xsi:type="dc:Point" x="817" y="279" />
+        <cmmndi:CMMNLabel />
+      </cmmndi:CMMNEdge>
+      <cmmndi:CMMNShape id="PlanItem_1a0ytsp_di" cmmnElementRef="task_repeatable_embedded_form_id">
+        <dc:Bounds x="532" y="392" width="100" height="80" />
+        <cmmndi:CMMNLabel />
+      </cmmndi:CMMNShape>
+    </cmmndi:CMMNDiagram>
+  </cmmndi:CMMNDI>
+</cmmn:definitions>
