@@ -34,13 +34,13 @@ import org.camunda.bpm.engine.impl.cmmn.entity.runtime.CaseExecutionEntity;
  * @author teamw
  *
  */
-@Named("startCmisCase")
-public class StartCmisCase {
+@Named("cmisCase")
+public class CmisCase {
   
   /**
    * The logger
    */
-  private final Logger LOGGER = Logger.getLogger(StartCmisCase.class.getName());
+  private final Logger LOGGER = Logger.getLogger(CmisCase.class.getName());
   
   
   /**
@@ -76,7 +76,7 @@ public class StartCmisCase {
         .orElse(null);
         
     if (cmisRepository == null) {
-      LOGGER.info("*** pingCmis - did not find -default- repository!!!" );
+      LOGGER.info("*** setupCmisFolder - did not find -default- repository!!!" );
       // then we just let stuff throw errors - this is not production code... 
     }
     
@@ -98,7 +98,7 @@ public class StartCmisCase {
           .orElse(null);
     
     if (cmisSharedFolderObject == null) {
-      LOGGER.info("*** cmisSharedFolderObject not found!!!");
+      LOGGER.info("*** setupCmisFolder - cmisSharedFolderObject not found!!!");
     }
     
     CmisObject cmisObject = cmisSession.getObject(cmisSharedFolderObject.getId());
@@ -106,10 +106,15 @@ public class StartCmisCase {
     if (cmisObject instanceof Folder) {
       sharedFolder = (Folder) cmisObject;
     } else {
-      LOGGER.info("*** pingCmis shared folder: is not a folder");
+      LOGGER.info("*** setupCmisFolder shared folder: is not a folder");
     }
     
-    LOGGER.info("*** pingCmis found shared folder - Id: " + cmisSharedFolderObject.getId());
+    LOGGER.info("*** setupCmisFolder found shared folder - Id: " + cmisSharedFolderObject.getId());
+    
+    // build a simple list of documents found in the shared folder - just testing the listing feature
+    //ItemIterable<CmisObject> cmisSharedFolderObjects = rootFolder.getChildren(folderOpCtx);
+    //cmisSharedFolderObjects
+    //  .forEach(arg0);
     
     execution.setVariable("cmisRepositoryId", cmisRepository.getId());
     execution.setVariable("cmisSharedFolderId", cmisSharedFolderObject.getId());
