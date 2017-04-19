@@ -22,6 +22,11 @@
     <wildfly.camel>4.5.0</wildfly.camel>  
     <org.apache.camel>2.18.2</org.apache.camel>
     <org.apache.chemistry>1.0.0</org.apache.chemistry> 
+    <io.reactivex>1.2.5</io.reactivex>
+    <!-- <io.reactivex.rxjava2>2.0.8</io.reactivex.rxjava2> -->
+    <io.reactivex.rxjava2>2.0.6</io.reactivex.rxjava2>
+    <aws-java-sdk>1.11.118</aws-java-sdk>
+    <!-- <aws-java-sdk>1.11.73</aws-java-sdk> -->
   </properties>
 
   <dependencyManagement>
@@ -242,7 +247,7 @@
 		<dependency>
 		    <groupId>io.reactivex.rxjava2</groupId>
 		    <artifactId>rxjava</artifactId>
-		    <version>2.0.6</version>
+		    <version>${io.reactivex.rxjava2}</version>
 		    <scope>compile</scope>
 		</dependency>
 		
@@ -385,9 +390,18 @@
 			<scope>compile</scope>
 		</dependency>
 		
-		  
-
-
+      <dependency>
+          <groupId>com.amazonaws</groupId>
+          <artifactId>aws-java-sdk</artifactId>
+          <version>${aws-java-sdk}</version>
+      </dependency>
+      <!-- https://mvnrepository.com/artifact/com.amazonaws/aws-java-sdk-redshift -->
+		<dependency>
+		    <groupId>com.amazonaws</groupId>
+		    <artifactId>aws-java-sdk-redshift</artifactId>
+		    <version>${aws-java-sdk}</version>
+		</dependency>
+      
 		
 		
 
