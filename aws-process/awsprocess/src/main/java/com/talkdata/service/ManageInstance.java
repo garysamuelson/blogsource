@@ -116,6 +116,7 @@ public class ManageInstance {
     //startInstanceResultFuture = eC2AsyncClient.startInstancesAsync(startInstancesRequest);
     
     //Single<List<InstanceStateChange>> startInstancesResult = 
+    
     Observable.fromFuture(eC2AsyncClient.startInstancesAsync(startInstancesRequest))
       .flatMap(x -> Observable.fromArray(getInstances(x)))
       //.blockingForEach(x -> LOGGER.info("*** count: " + x.size()));
@@ -174,50 +175,41 @@ public class ManageInstance {
   }
   
   
+  
+  
+  
   /**
    * 
    * @param eC2AsyncClient
-   * @param startInstancesRequest
+   * @param instance
    * @return
    */
-  protected StartInstancesResult startEc2Instance(final AmazonEC2AsyncClient eC2AsyncClient,
-      final StartInstancesRequest startInstancesRequest) {
-
-    LOGGER.info("*** startEc2Instance invoked");
-
-    Future<StartInstancesResult> startInstanceResultFuture = null;
-    StartInstancesResult startInstancesResult = null;
-
-    startInstanceResultFuture = eC2AsyncClient.startInstancesAsync(startInstancesRequest);
-    LOGGER.info("*** startEc2Instance waiting for results ");
-    // start polling
-    while (!startInstanceResultFuture.isDone() && !startInstanceResultFuture.isCancelled()) {
-      // perform some other tasks...
+  protected JsonNode describeInstanceForJson(final AmazonEC2AsyncClient eC2AsyncClient,
+      final Instance instance) {
+    
+    LOGGER.info("*** describeInstanceForJson invoked");
+    
+    DescribeInstancesRequest request = new DescribeInstancesRequest();
+      request.withInstanceIds(instance.getInstanceId());
+    
+      ObjectMapper mapper = new ObjectMapper();
+      DescribeInstancesResult result = null;
+      JsonNode jsonNode= null;
+      // String jsonString=null;
       try {
-        // FYI: I DO NOT like this solution. Prefer event oriented. But, this is
-        // how AWS says it's done.
-        Thread.sleep(1000);
-      } catch (InterruptedException e) {
-        LOGGER.info("*** Thread.sleep() was interrupted! Damn polling solution!!! ");
-        // System.exit(0); // for now we simply kill the app TODO: Fix this
-        // shit!
-      }
-      LOGGER.info("*** startEc2Instance waiting for results ");
-    }
-
-    try {
-      startInstancesResult = startInstanceResultFuture.get();
-      LOGGER.info("*** runEc2Instance got the results");
-    } catch (ExecutionException | InterruptedException ee) {
-      // Futures always wrap errors as an ExecutionException.
-      // The *real* exception is stored as the cause of the ExecutionException
-      Throwable exception = ee.getCause();
-      LOGGER.info("*** Error launching instance: " + exception.getMessage());
-    }
-
-    // return Observable.just(runInstancesResult);
-    return startInstancesResult;
-
+        LOGGER.info("*** describeInstanceForJson - ec2async.describeInstance Id: " + instance.getInstanceId());
+        result  = eC2AsyncClient.describeInstances(request);
+        jsonNode = mapper.valueToTree(result); 
+      } catch (AmazonEC2Exception ec2Exception) {
+        ec2Exception.printStackTrace();
+        //String errorMessage = "Doh! Bad instance ID?";
+        // NOTE: will need to do something with this error. 
+      }   
+      
+      
+    return jsonNode;
+    
+   
   }
   
   
