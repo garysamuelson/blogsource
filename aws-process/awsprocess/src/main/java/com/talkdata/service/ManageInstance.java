@@ -42,6 +42,7 @@ import com.amazonaws.services.ec2.model.StartInstancesResult;
 import com.amazonaws.services.ec2.model.Tag;
 
 import com.amazonaws.AmazonClientException;
+import com.amazonaws.Request;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
@@ -83,7 +84,8 @@ public class ManageInstance {
   
   /**
    * 
-   * @param launchRequest
+   * 
+   * @param serviceRequest
    * @param response
    * @throws Exception
    */
@@ -93,7 +95,7 @@ public class ManageInstance {
   @Produces(MediaType.APPLICATION_JSON)
   public void startInstance(final JsonNode serviceRequest, @Suspended final AsyncResponse response) throws Exception {
     
-    LOGGER.info("*** linuxrhel invoked ");
+    LOGGER.info("*** startInstance invoked ");
         
     final AWSCredentials credentials = Connection.getCredentials(serviceRequest);
     final AmazonEC2AsyncClient eC2AsyncClient = Connection.getEC2AsyncClient(serviceRequest, credentials);
@@ -104,6 +106,10 @@ public class ManageInstance {
         new StartInstancesRequest()
           .withInstanceIds(instanceId);
     
+    // dry run request
+    // Request<StartInstancesRequest> dryRunStartInstancesRequest = startInstancesRequest.getDryRunRequest();
+    
+    
     //Future<StartInstancesResult> startInstanceResultFuture = eC2AsyncClient.startInstancesAsync(startInstancesRequest);
     //StartInstancesResult startInstancesResult = null;
 
@@ -113,11 +119,11 @@ public class ManageInstance {
     Observable.fromFuture(eC2AsyncClient.startInstancesAsync(startInstancesRequest))
       .flatMap(x -> Observable.fromArray(getInstances(x)))
       //.blockingForEach(x -> LOGGER.info("*** count: " + x.size()));
-      .forEach(x -> LOGGER.info("*** count: " + x.size()));
+      .forEach(x -> LOGGER.info("*** startInstance - count: " + x.size()));
       
       
       
-    LOGGER.info("*** linuxrhel done");  
+    LOGGER.info("*** startInstance done");  
     
     /**
     PollingPolka pollingPolka = new PollingPolka();
