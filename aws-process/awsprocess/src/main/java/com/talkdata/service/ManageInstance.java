@@ -115,25 +115,36 @@ public class ManageInstance {
     
     final Observable<String> statusObsrv =
       Observable.fromFuture(eC2AsyncClient.startInstancesAsync(startInstancesRequest))
-         .flatMap(x -> Observable.fromArray(getInstances(x)))
-         .flatMapIterable(x-> x)         
-         .flatMap(x -> Observable.just(x.getInstanceId()))
-         .flatMap(x -> Observable.just(ManageInstance.getInstanceStatus(eC2AsyncClient,x)))
-         .repeatWhen(o -> o.concatMap(v -> Observable.timer(5, TimeUnit.SECONDS)));
+         //.flatMap(x -> Observable.fromArray(getInstances(x)))
+         //.flatMapIterable(x-> x)         
+         //.flatMap(x -> Observable.just(x.getInstanceId()))
+         //.flatMap(x -> Observable.just(ManageInstance.getInstanceStatus(eC2AsyncClient,x)))
+        .flatMap(x -> Observable.just(ManageInstance.getInstanceStatus(eC2AsyncClient,instanceId)))
+        .repeatWhen(o -> o.concatMap(v -> Observable.timer(5, TimeUnit.SECONDS)));
 
     statusObsrv.subscribeWith(new DisposableObserver<String>() {
       @Override
-      public void onNext(String t) {
-        LOGGER.info("*** subscribe status item: " + t);
-        if(StringUtils.equalsIgnoreCase(t, "ok")) {
+      public void onNext(String instanceStatus) {
+        LOGGER.info("*** subscribe status item: " + instanceStatus);
+        if(StringUtils.equalsIgnoreCase(instanceStatus, "ok")) {
           dispose();
+          LOGGER.info("*** startInstance done");  
+        } else if(StringUtils.equalsIgnoreCase(instanceStatus, "initializing")) {
+          JsonNode jsonNode = describeInstanceForJson(eC2AsyncClient, instanceId);
+          response.resume(jsonNode); 
+          // Send a full status if: initializing
+          // getInstances: need to refactor what we're passing into the observer - need the restults. 
         }
+        // otherwise we keep testing until we get a status
       }
 
       @Override
       public void onError(Throwable e) {
          LOGGER.severe(e.getMessage());
          dispose();
+         String jsonString = "{\"ProcessingException\": \"" + e.getMessage() + "\"}";
+         response.resume(jsonString); 
+         //response.resume(e.getMessage());
       }
 
       @Override
@@ -156,7 +167,7 @@ public class ManageInstance {
     //final Instance instance) {
       
       
-    LOGGER.info("*** startInstance done");  
+    // LOGGER.info("*** startInstance done");  
     
     /**
     PollingPolka pollingPolka = new PollingPolka();
@@ -171,7 +182,9 @@ public class ManageInstance {
           //.flatMap(instance -> Observable.just(describeInstancesResultToJsonNode(eC2AsyncClient, instance)));
 
     **/    
-    response.resume(serviceRequest); 
+    
+    // should never reach here
+    //response.resume(serviceRequest); 
  
   }
   
