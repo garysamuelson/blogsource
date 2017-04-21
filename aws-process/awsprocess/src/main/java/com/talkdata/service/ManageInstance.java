@@ -113,83 +113,15 @@ public class ManageInstance {
         new StartInstancesRequest()
           .withInstanceIds(instanceId);
     
-    // dry run request
-    // Request<StartInstancesRequest> dryRunStartInstancesRequest = startInstancesRequest.getDryRunRequest();
-    
-    
-    //Future<StartInstancesResult> startInstanceResultFuture = eC2AsyncClient.startInstancesAsync(startInstancesRequest);
-    //StartInstancesResult startInstancesResult = null;
-
-    //startInstanceResultFuture = eC2AsyncClient.startInstancesAsync(startInstancesRequest);
-    
-    //Single<List<InstanceStateChange>> startInstancesResult = 
-    
-    //List<InstanceStateChange> instanceStateChangeList = 
     final Observable<String> statusObsrv =
-      // Observable.fromFuture(eC2AsyncClient.startInstancesAsync(startInstancesRequest))
       Observable.fromFuture(eC2AsyncClient.startInstancesAsync(startInstancesRequest))
          .flatMap(x -> Observable.fromArray(getInstances(x)))
-        //.flatMap(x -> Observable.just(getInstances(x)))
-         .flatMapIterable(x-> x)
-         
+         .flatMapIterable(x-> x)         
          .flatMap(x -> Observable.just(x.getInstanceId()))
-         //.firstOrError() // bit of a hack - just get the first one
-         
-         //.flatMap(x -> Observable.just(ManageInstance.describeInstanceForJson(eC2AsyncClient,x)))
          .flatMap(x -> Observable.just(ManageInstance.getInstanceStatus(eC2AsyncClient,x)))
-         /**
-         .flatMap(z -> {
-                         LOGGER.info("*** flatMap1  status: " + z);                         
-                         return Observable.just(z);
-                         
-                       })
-         .flatMap(z -> {
-                         LOGGER.info("*** flatMap2 status: " + z);                         
-                         return Observable.just(z);
-                       
-                       })
-         .concatMap(y -> {
-           LOGGER.info("*** concatMap status: " + y);                         
-           return Observable.just(y);
-         
-         })
-         **/
-         /**
-         .repeatWhen(x -> {
-                             LOGGER.info("*** x: " + x);
-                             return Observable.timer(3, TimeUnit.SECONDS);
-                           }
-                     )
-         **/
-         
-         //Observable.fromCallable(() -> pollValue())
-         // .repeatWhen(o -> o.concatMap(v -> Observable.timer(20, TimeUnit.SECONDS)));
-         
-         //Observable.fromCallable(() -> pollValue())
          .repeatWhen(o -> o.concatMap(v -> Observable.timer(5, TimeUnit.SECONDS)));
-         
-      
-         /**
-         .repeatWhen(o ->  o.concatMap(v -> {
-                                               LOGGER.info("*** v: " + v);
-                                              
-                                               LOGGER.info("*** o: " + o);
-                                               o.forEach(z -> LOGGER.info("***o.forEach z: " + z));
-                                               //v. (y -> LOGGER.info("***o.forEach y: " + y));
-                                               
-                                               return Observable.timer(3, TimeUnit.SECONDS);
-                                            }
-                                       )
-          );
-          **/
-          
-         
-         //.subscribe(item -> LOGGER.info("*** subscribe item: " + item)); <<<<<<<<< ****** THIS ALSO WORKS
-         
-    
-    // statusObsrv.subscribe((Consumer<? super String>) subscriber);
-    statusObsrv.subscribeWith(new DisposableObserver<String>() {
 
+    statusObsrv.subscribeWith(new DisposableObserver<String>() {
       @Override
       public void onNext(String t) {
         LOGGER.info("*** subscribe status item: " + t);
@@ -200,10 +132,13 @@ public class ManageInstance {
 
       @Override
       public void onError(Throwable e) {
+         LOGGER.severe(e.getMessage());
+         dispose();
       }
 
       @Override
       public void onComplete() {
+        LOGGER.info("*** onComplete invoked");
       }
     });
       
