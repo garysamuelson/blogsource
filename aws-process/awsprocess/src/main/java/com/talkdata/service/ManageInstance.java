@@ -57,10 +57,15 @@ import com.talkdata.awsutils.PollingPolka;
 
 import io.reactivex.Observable;
 import io.reactivex.Single;
+import io.reactivex.functions.Consumer;
 
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import io.reactivex.observables.ConnectableObservable;
+import io.reactivex.observers.DisposableObserver;
+import io.reactivex.subscribers.DefaultSubscriber;
+import io.reactivex.subscribers.DisposableSubscriber;
+import io.reactivex.subscribers.ResourceSubscriber;
 
 
 
@@ -120,6 +125,8 @@ public class ManageInstance {
     //Single<List<InstanceStateChange>> startInstancesResult = 
     
     //List<InstanceStateChange> instanceStateChangeList = 
+    final Observable<String> statusObsrv =
+      // Observable.fromFuture(eC2AsyncClient.startInstancesAsync(startInstancesRequest))
       Observable.fromFuture(eC2AsyncClient.startInstancesAsync(startInstancesRequest))
          .flatMap(x -> Observable.fromArray(getInstances(x)))
         //.flatMap(x -> Observable.just(getInstances(x)))
@@ -130,6 +137,7 @@ public class ManageInstance {
          
          //.flatMap(x -> Observable.just(ManageInstance.describeInstanceForJson(eC2AsyncClient,x)))
          .flatMap(x -> Observable.just(ManageInstance.getInstanceStatus(eC2AsyncClient,x)))
+         /**
          .flatMap(z -> {
                          LOGGER.info("*** flatMap1  status: " + z);                         
                          return Observable.just(z);
@@ -145,6 +153,7 @@ public class ManageInstance {
            return Observable.just(y);
          
          })
+         **/
          /**
          .repeatWhen(x -> {
                              LOGGER.info("*** x: " + x);
@@ -157,10 +166,10 @@ public class ManageInstance {
          // .repeatWhen(o -> o.concatMap(v -> Observable.timer(20, TimeUnit.SECONDS)));
          
          //Observable.fromCallable(() -> pollValue())
-         //.repeatWhen(o -> o.concatMap(v -> Observable.timer(20, TimeUnit.SECONDS)))
+         .repeatWhen(o -> o.concatMap(v -> Observable.timer(5, TimeUnit.SECONDS)));
          
       
-      
+         /**
          .repeatWhen(o ->  o.concatMap(v -> {
                                                LOGGER.info("*** v: " + v);
                                               
@@ -171,18 +180,32 @@ public class ManageInstance {
                                                return Observable.timer(3, TimeUnit.SECONDS);
                                             }
                                        )
-          )
+          );
+          **/
           
          
-         //.takeUntil(status -> !StringUtils.equalsIgnoreCase(status, "ok"))
-         //.takeUntil(status -> LOGGER.info("*** status: " + status))
-      
-         //.repeatUntil(stop)
-      
-         .subscribe(item -> LOGGER.info("*** subscribe item: " + item));
+         //.subscribe(item -> LOGGER.info("*** subscribe item: " + item)); <<<<<<<<< ****** THIS ALSO WORKS
          
-      
-      
+    
+    // statusObsrv.subscribe((Consumer<? super String>) subscriber);
+    statusObsrv.subscribeWith(new DisposableObserver<String>() {
+
+      @Override
+      public void onNext(String t) {
+        LOGGER.info("*** subscribe status item: " + t);
+        if(StringUtils.equalsIgnoreCase(t, "ok")) {
+          dispose();
+        }
+      }
+
+      @Override
+      public void onError(Throwable e) {
+      }
+
+      @Override
+      public void onComplete() {
+      }
+    });
       
       
       
@@ -380,9 +403,9 @@ public class ManageInstance {
            .getInstanceStatuses();
       
       LOGGER.info("*** getInstanceStatus - instanceStatusList.size(): " + instanceStatusList.size());
-      //if(instanceStatusList.size() == 0) {
-      //  return "no status";
-      //}
+      if(instanceStatusList.size() == 0) {
+        return "no status";
+      }
         
       
       
