@@ -6,6 +6,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
 import javax.annotation.Resource;
@@ -35,6 +36,7 @@ import com.amazonaws.services.ec2.model.DescribeInstancesRequest;
 import com.amazonaws.services.ec2.model.DescribeInstancesResult;
 import com.amazonaws.services.ec2.model.Instance;
 import com.amazonaws.services.ec2.model.InstanceStateChange;
+import com.amazonaws.services.ec2.model.InstanceStatus;
 import com.amazonaws.services.ec2.model.RunInstancesRequest;
 import com.amazonaws.services.ec2.model.RunInstancesResult;
 import com.amazonaws.services.ec2.model.StartInstancesRequest;
@@ -117,11 +119,83 @@ public class ManageInstance {
     
     //Single<List<InstanceStateChange>> startInstancesResult = 
     
-    Observable.fromFuture(eC2AsyncClient.startInstancesAsync(startInstancesRequest))
-      .flatMap(x -> Observable.fromArray(getInstances(x)))
-      //.blockingForEach(x -> LOGGER.info("*** count: " + x.size()));
-      .forEach(x -> LOGGER.info("*** startInstance - count: " + x.size()));
+    //List<InstanceStateChange> instanceStateChangeList = 
+      Observable.fromFuture(eC2AsyncClient.startInstancesAsync(startInstancesRequest))
+         .flatMap(x -> Observable.fromArray(getInstances(x)))
+        //.flatMap(x -> Observable.just(getInstances(x)))
+         .flatMapIterable(x-> x)
+         
+         .flatMap(x -> Observable.just(x.getInstanceId()))
+         //.firstOrError() // bit of a hack - just get the first one
+         
+         //.flatMap(x -> Observable.just(ManageInstance.describeInstanceForJson(eC2AsyncClient,x)))
+         .flatMap(x -> Observable.just(ManageInstance.getInstanceStatus(eC2AsyncClient,x)))
+         .flatMap(z -> {
+                         LOGGER.info("*** flatMap1  status: " + z);                         
+                         return Observable.just(z);
+                         
+                       })
+         .flatMap(z -> {
+                         LOGGER.info("*** flatMap2 status: " + z);                         
+                         return Observable.just(z);
+                       
+                       })
+         .concatMap(y -> {
+           LOGGER.info("*** concatMap status: " + y);                         
+           return Observable.just(y);
+         
+         })
+         /**
+         .repeatWhen(x -> {
+                             LOGGER.info("*** x: " + x);
+                             return Observable.timer(3, TimeUnit.SECONDS);
+                           }
+                     )
+         **/
+         
+         //Observable.fromCallable(() -> pollValue())
+         // .repeatWhen(o -> o.concatMap(v -> Observable.timer(20, TimeUnit.SECONDS)));
+         
+         //Observable.fromCallable(() -> pollValue())
+         //.repeatWhen(o -> o.concatMap(v -> Observable.timer(20, TimeUnit.SECONDS)))
+         
       
+      
+         .repeatWhen(o ->  o.concatMap(v -> {
+                                               LOGGER.info("*** v: " + v);
+                                              
+                                               LOGGER.info("*** o: " + o);
+                                               o.forEach(z -> LOGGER.info("***o.forEach z: " + z));
+                                               //v. (y -> LOGGER.info("***o.forEach y: " + y));
+                                               
+                                               return Observable.timer(3, TimeUnit.SECONDS);
+                                            }
+                                       )
+          )
+          
+         
+         //.takeUntil(status -> !StringUtils.equalsIgnoreCase(status, "ok"))
+         //.takeUntil(status -> LOGGER.info("*** status: " + status))
+      
+         //.repeatUntil(stop)
+      
+         .subscribe(item -> LOGGER.info("*** subscribe item: " + item));
+         
+      
+      
+      
+      
+      
+      
+      //.forEach(item -> LOGGER.info("*** InstanceId: " + item));
+      //.blockingForEach(x -> LOGGER.info("*** count: " + x.size()));
+      //.flatMap(x -> x.)
+      
+      //.forEach(x -> LOGGER.info("*** startInstance - count: " + x.size()));
+
+    
+    //protected JsonNode describeInstanceForJson(final AmazonEC2AsyncClient eC2AsyncClient,
+    //final Instance instance) {
       
       
     LOGGER.info("*** startInstance done");  
@@ -184,7 +258,7 @@ public class ManageInstance {
    * @param instance
    * @return
    */
-  protected JsonNode describeInstanceForJson(final AmazonEC2AsyncClient eC2AsyncClient,
+  protected static JsonNode describeInstanceForJson(final AmazonEC2AsyncClient eC2AsyncClient,
       final Instance instance) {
     
     LOGGER.info("*** describeInstanceForJson invoked");
@@ -211,6 +285,124 @@ public class ManageInstance {
     
    
   }
+  
+  
+  /**
+   * 
+   * @param eC2AsyncClient
+   * @param instance
+   * @return
+   */
+  protected static JsonNode describeInstanceForJson(final AmazonEC2AsyncClient eC2AsyncClient,
+      final String instanceId) {
+    
+    LOGGER.info("*** describeInstanceForJson invoked");
+    
+    
+    DescribeInstancesRequest request = new DescribeInstancesRequest();
+      request.withInstanceIds(instanceId);
+    
+      //request.withInstanceIds(instanceId)
+        
+    
+    
+    
+      ObjectMapper mapper = new ObjectMapper();
+      DescribeInstancesResult result = null;
+      JsonNode jsonNode= null;
+      // String jsonString=null;
+      try {
+        LOGGER.info("*** describeInstanceForJson - instanceId: " + instanceId);
+        result  = eC2AsyncClient.describeInstances(request);
+        //result  =  
+        //    eC2AsyncClient.describeInstanceStatus(request);
+        //      .
+        String getStatus  = eC2AsyncClient.describeInstanceStatus()
+          .getInstanceStatuses()
+          .get(0)
+          .getInstanceStatus()
+          .getStatus();
+        
+        LOGGER.info("*** describeInstanceForJson - getStatus: " + getStatus);
+        
+            /**
+          .getInstanceStatuses()
+          .get(0)
+          .getInstanceStatus()
+          .getStatus();
+          **/
+        
+        jsonNode = mapper.valueToTree(result); 
+      } catch (AmazonEC2Exception ec2Exception) {
+        ec2Exception.printStackTrace();
+        //String errorMessage = "Doh! Bad instance ID?";
+        // NOTE: will need to do something with this error. 
+      }   
+      
+      
+    return jsonNode;
+    
+    //return null;
+   
+  }
+  
+  
+  
+  /**
+   * 
+   * @param eC2AsyncClient
+   * @param instanceId
+   * @return
+   */
+  protected static String getInstanceStatus(final AmazonEC2AsyncClient eC2AsyncClient,
+      final String instanceId) {
+    
+    
+    LOGGER.info("*** getInstanceStatus invoked");
+    
+    
+    DescribeInstancesRequest request = new DescribeInstancesRequest();
+      request.withInstanceIds(instanceId);
+      
+ 
+      
+    
+      //request.withInstanceIds(instanceId)
+      DescribeInstanceStatusRequest statusRequest = 
+          new DescribeInstanceStatusRequest()
+              .withInstanceIds(instanceId);
+
+      //statusRequest.withInstanceIds(instanceId);
+      
+      // check if we even have a status
+      List<InstanceStatus> instanceStatusList = 
+           eC2AsyncClient.describeInstanceStatus(statusRequest)
+           .getInstanceStatuses();
+      
+      LOGGER.info("*** getInstanceStatus - instanceStatusList.size(): " + instanceStatusList.size());
+      //if(instanceStatusList.size() == 0) {
+      //  return "no status";
+      //}
+        
+      
+      
+      
+      
+      String getStatus2  = eC2AsyncClient.describeInstanceStatus(statusRequest)
+          .getInstanceStatuses()
+          .get(0)
+          .getInstanceStatus()
+          .getStatus();
+      
+      LOGGER.info("*** getInstanceStatus: " + getStatus2);
+      
+      return getStatus2;
+      //return false;
+
+    
+    
+  }
+  
   
   
   /**
