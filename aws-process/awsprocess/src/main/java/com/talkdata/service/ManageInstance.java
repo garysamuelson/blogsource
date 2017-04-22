@@ -112,6 +112,12 @@ public class ManageInstance {
     StartInstancesRequest startInstancesRequest = 
         new StartInstancesRequest()
           .withInstanceIds(instanceId);
+    /**
+     * Assuming we're starting a pre-existing instance. Meaning, the instance already
+     * has an instanceId - i.e. we are not launching - just starting. 
+     * This means that I'm using the instanceId (above). And,
+     * I throw-away the results from the 'start'.
+     */
     
     final Observable<String> statusObsrv =
       Observable.fromFuture(eC2AsyncClient.startInstancesAsync(startInstancesRequest))
@@ -121,12 +127,20 @@ public class ManageInstance {
          .flatMap(x -> Observable.just(x.getInstanceId()))
          .flatMap(x -> Observable.just(ManageInstance.getInstanceStatus(eC2AsyncClient,x)))
          **/      
+          // Reusing the instanceId from above. Not using the 'x' value other than move forward the obsrvbl
          .flatMap(x -> Observable.just(ManageInstance.getInstanceStatus(eC2AsyncClient,instanceId)))
         .repeatWhen(o -> o.concatMap(v -> Observable.timer(5, TimeUnit.SECONDS)));
 
     statusObsrv.subscribeWith(new DisposableObserver<String>() {
+      // curious look at our observer state
+      int count = 0;
+      // String lastInstanceStatus = "";
       @Override
       public void onNext(String instanceStatus) {
+        // curious look at our observer state
+        LOGGER.info("*** subscribe count: " + count);
+        count++;
+        
         LOGGER.info("*** subscribe status item: " + instanceStatus);
         if(StringUtils.equalsIgnoreCase(instanceStatus, "ok")) {
           dispose();
@@ -136,9 +150,22 @@ public class ManageInstance {
             response.resume(jsonNode);
           }
         } else if(StringUtils.equalsIgnoreCase(instanceStatus, "initializing")) {
-          JsonNode jsonNode = describeInstanceForJson(eC2AsyncClient, instanceId);
-          response.resume(jsonNode);  
-        }
+          // watch or dispose? (unless you like watching the console)
+          dispose();
+          JsonNode jsonNode = describeInstanceForJson(eC2AsyncClient, instanceId); 
+          if(!response.isDone()) {
+            response.resume(jsonNode);
+          }
+        } //in the off-chance the startup is canceled. Example: at the AWS console or nothing is moving forward
+          else if((StringUtils.equalsIgnoreCase(instanceStatus, "no status")) && (count > 10)) {
+            dispose();
+            LOGGER.info("*** startInstance not moving foward - status stuck at: no status");
+            LOGGER.info("*** startInstance not moving foward - retry count > 10: " + count);
+            String jsonString = "{\"ProcessingError\": \" startInstance not moving foward - retry count > 10 \"}"; 
+            if(!response.isDone()) {
+              response.resume(jsonString);
+            }
+          }
       }
 
       @Override
@@ -260,7 +287,7 @@ public class ManageInstance {
         result  = eC2AsyncClient.describeInstances(request);
         //result  =  
         //    eC2AsyncClient.describeInstanceStatus(request);
-        //      .
+        //      
         String getStatus  = eC2AsyncClient.describeInstanceStatus()
           .getInstanceStatuses()
           .get(0)
