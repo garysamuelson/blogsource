@@ -1,5 +1,6 @@
 package com.talkdata.service;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
@@ -17,11 +18,14 @@ import javax.ws.rs.core.MediaType;
 import org.camunda.bpm.engine.RuntimeService;
 import org.camunda.bpm.engine.runtime.ProcessInstanceWithVariables;
 import org.camunda.bpm.engine.variable.VariableMap;
+import org.camunda.spin.Spin;
+import org.camunda.spin.impl.json.jackson.JacksonJsonNode;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 
 
 /**
@@ -221,6 +225,171 @@ public class Bpm {
 	
 	
 	
+	
+	/**
+	 * 
+	 * @param postpayload
+	 * @return
+	 * @throws JsonProcessingException 
+	 */
+  @POST
+  @Consumes(MediaType.APPLICATION_JSON)
+  @Produces(MediaType.APPLICATION_JSON)
+  @Path("bpmbasicstartspin")
+  public JsonNode bpmBasicStartSpin(JsonNode postpayload) throws JsonProcessingException   {
+    
+    
+    LOGGER.info("********************************");
+    LOGGER.info("*** bpmBasicStartSpin - invoked");    
+    LOGGER.info("********************************");  
+    
+    // get process ID
+    // NOTE: Using the "General -> process Id" field value from the BPMN process model
+    String processID = postpayload.get("processID").asText();
+    
+    LOGGER.info("*** bpmBasicStartSpin - processID: " + processID);  
+    
+    // get the case/process variables
+    final JsonNode arrNode = postpayload.get("processVariables");
+    Map<String, Object> variables = new HashMap<String, Object>();
+    
+    ObjectMapper mapper = new ObjectMapper();
+    for (final JsonNode jsonNode : arrNode) {
+      // check for variable with children - which we'll assume are of type JSON
+      LOGGER.info("*** jsonNode - name: " + jsonNode.get("name").asText() + " , size: " + jsonNode.get("value").size());
+      if (jsonNode.get("value").size() > 0) {
+        variables.put(jsonNode.get("name").asText(), Spin.JSON(mapper.writer().writeValueAsString(jsonNode.get("value"))));
+      } else {
+        variables.put(jsonNode.get("name").asText(), jsonNode.get("value").asText());
+      }
+    }
+    
+    // start the process
+    ProcessInstanceWithVariables pVariablesInReturn = runtimeService.createProcessInstanceByKey(processID)
+        .setVariables(variables)
+        .executeWithVariablesInReturn();
+    
+    String piid = pVariablesInReturn.getProcessInstanceId();
+    boolean isEnded = pVariablesInReturn.isEnded();
+    VariableMap variableMap = pVariablesInReturn.getVariables();
+    
+    // build a proper JSON return value - using Jackson
+    ObjectNode rootObjectNode = mapper.createObjectNode();
+    
+    // Extract completed process results or output
+    // set the process processID, InstanceID, and isEnded 
+    // variables as child JSON nodes
+    rootObjectNode
+      .put("processID", processID)
+      .put("processInstanceID", piid)
+      .put("isEnded", isEnded);
+    
+    // create the JSON node to hold the BPM returned variables
+    ObjectNode processVariablesNode = mapper.createObjectNode();
+    // attach to parent
+    rootObjectNode.set("processVariables", processVariablesNode);
+
+    // print returned process variables and append to return JSON object
+    
+    variableMap.forEach((processVariableName, processVariableValue) -> {
+    
+      System.out.println("*** class name: " + processVariableValue.getClass().getSimpleName());
+      
+      if(processVariableValue.getClass().getSimpleName().equalsIgnoreCase("JacksonJsonNode")) {
+        System.out.println("*** spin sucks");
+        Object suckeeSpinObject = ((Spin)processVariableValue).unwrap();
+        System.out.println("*** SuckeeSpinObject class name: " + suckeeSpinObject.getClass().getSimpleName());
+        System.out.println("*** SuckeeSpinObject class name: " + suckeeSpinObject.getClass().getName());
+        System.out.println("*** SuckeeSpinObject class name: " + suckeeSpinObject.getClass().getTypeName());
+        
+        //if (suckeeSpinObject instanceof com.fasterxml.jackson.databind.node.ArrayNode) {
+        //if (suckeeSpinObject.getClass().isInstance(ArrayNode.class)) {
+        //if (suckeeSpinObject.getClass().equals(ArrayNode.class)) {
+        if (suckeeSpinObject.getClass().getSimpleName().equalsIgnoreCase("ArrayNode")) {
+          LOGGER.info("*** found array node");
+          LOGGER.info("*** suckeeSpinObject.toString(): " + suckeeSpinObject.toString());
+          LOGGER.info("*** processVariableValue.toString(): " + processVariableValue.toString());
+          try {
+            ArrayNode arrayNode = (ArrayNode) mapper.readTree(processVariableValue.toString());
+            LOGGER.info("*** arrayNode.toString(): " + arrayNode.toString());
+          } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+          }
+          //ArrayNode arrayNode = (ArrayNode) suckeeSpinObject;
+        }
+        
+      }
+      
+      // for (Map.Entry<String, Object> entry : variableMap.entrySet())
+      /**
+      for(Object object : variableMap.values())
+      {
+          //System.out.println(entry.getKey() + "/" + entry.getValue());
+          System.out.println("class name: " + object.getClass().getSimpleName());
+          if (object instanceof ArrayNode) {
+          
+            LOGGER.info("*** found array node");
+          }
+          if (object instanceof JacksonJsonNode) {
+            Object object2 = ((JacksonJsonNode)object).unwrap();
+            System.out.println("class name: " + object.getClass().getSimpleName());
+            LOGGER.info("*** JacksonJsonNode");
+          }
+      }
+      **/
+    
+    // log values
+      //LOGGER.info(processVariableName.toString() + " : " + processVariableValue.toString());
+
+      //String getDataFormatName = ((Spin)processVariableValue).getDataFormatName();
+      //Object object = ((Spin)processVariableValue).unwrap();
+      
+      //if (object instanceof ArrayNode) {
+      //  //type new_name = (type) object;
+      //  LOGGER.info("*** found array node");
+      //}
+      
+      // see if we can cast this into a jsonnode
+      //JsonNode jsonNode = (JsonNode) object;
+      
+      // build JSON return
+      //processVariablesNode.put(processVariableName.toString(), processVariableValue.toString());
+      //processVariableValue.
+      //processVariablesNode.set(processVariableName.toString(), (JsonNode) processVariableValue);
+    
+      
+      try {
+      // a very painful approach - is there another way (noting we have nested Jackson libraries via Spin)
+        if(processVariableValue.getClass().getSimpleName().equalsIgnoreCase("JacksonJsonNode")) {
+          //if (((Spin)processVariableValue).unwrap().getClass().getSimpleName().equalsIgnoreCase("ArrayNode") || 
+          //    ((Spin)processVariableValue).unwrap().getClass().getSimpleName().equalsIgnoreCase("JacksonJsonNode")) {
+          //  // ArrayNode arrayNode = (ArrayNode) mapper.readTree(processVariableValue.toString());
+            JsonNode jsonNode = mapper.readTree(processVariableValue.toString());
+            processVariablesNode.set(processVariableName.toString(), jsonNode);
+          //}
+        } else {
+          processVariablesNode.put(processVariableName.toString(), processVariableValue.toString());
+        }
+      } catch (IOException e) {
+        e.printStackTrace();
+        String errorMessage = "error processing process variables";
+        processVariablesNode.put("JsonProcessingException", errorMessage);        
+      }
+      
+    });
+    
+    return rootObjectNode;
+    //return null;
+  }
+
+
+  /**
+  private void foreach(Object object) {
+    // TODO Auto-generated method stub
+    
+  }
+  **/
 	
 
 }
